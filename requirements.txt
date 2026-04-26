@@ -1,0 +1,52 @@
+# --- Core ---
+pydantic>=2.7
+python-dotenv>=1.0
+typer>=0.12          # CLI поверх argparse, pretty help
+rich>=13.7           # цветной вывод и progress bars
+
+# --- Agentic framework ---
+langgraph>=0.2.50
+langchain>=0.3.0
+langchain-anthropic>=0.2.0
+langchain-openai>=0.2.0  # опционально, vendor-agnostic
+
+# --- LLM clients ---
+anthropic>=0.39.0    # Claude
+openai>=1.50.0       # опционально
+
+# --- Web collection ---
+httpx>=0.27
+playwright>=1.47     # JS-heavy сайты (Crunchbase, LinkedIn-like)
+trafilatura>=1.12    # очистка HTML в текст
+feedparser>=6.0      # RSS
+
+# --- Search & news APIs ---
+tavily-python>=0.5
+# brave-search        # опционально — нет официального pip пакета, использовать через httpx
+
+# --- SEC / regulatory ---
+sec-edgar-downloader>=5.0  # SEC EDGAR
+
+# --- Sanctions / red flags ---
+# OpenSanctions — REST API, дёргаем через httpx
+
+# --- Audio / video ---
+yt-dlp>=2024.10
+# faster-whisper       # ставить отдельно (CUDA/CPU), смотри CLAUDE_TASKS.md шаг 6
+# pyannote.audio       # диаризация — отдельно
+
+# --- Storage ---
+psycopg[binary]>=3.2  # Postgres
+qdrant-client>=1.12
+boto3>=1.35           # S3 / MinIO
+neo4j>=5.24           # Knowledge graph (опц.)
+
+# --- Observability ---
+langfuse>=2.50
+structlog>=24.4
+
+# --- Testing ---
+pytest>=8.3
+pytest-asyncio>=0.24
+freezegun>=1.5
+respx>=0.21           # mock httpx

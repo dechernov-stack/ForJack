@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Storytelling Data Lake — accumulator</title>
+<style>
+  :root {
+    --navy: #1E2761;
+    --ice: #CADCFC;
+    --accent: #F96167;
+    --green: #2C9F5F;
+    --amber: #B58A00;
+    --grey: #94A3B8;
+    --bg: #F5F7FA;
+    --card: #FFFFFF;
+    --text: #0F172A;
+    --muted: #475569;
+    --border: #E2E8F0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.5;
+  }
+  header {
+    background: var(--navy); color: white; padding: 24px 32px;
+    display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center;
+  }
+  header .eyebrow {
+    font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--ice); margin-bottom: 4px;
+  }
+  header h1 { margin: 0; font-size: 28px; font-weight: 700; }
+  header .meta { font-size: 13px; color: var(--ice); margin-top: 6px; }
+  .decision-badge {
+    padding: 14px 20px; border-radius: 8px; min-width: 220px; text-align: center;
+    font-weight: 700; letter-spacing: 1px;
+  }
+  .decision-badge.continue { background: var(--green); color: white; }
+  .decision-badge.watch    { background: var(--amber); color: white; }
+  .decision-badge.pause    { background: #C2410C; color: white; }
+  .decision-badge.terminate{ background: var(--accent); color: white; }
+  .decision-badge .label { font-size: 11px; opacity: 0.8; letter-spacing: 3px; }
+  .decision-badge .name  { font-size: 22px; margin-top: 4px; text-transform: uppercase; }
+  .decision-badge .why   { font-size: 11px; opacity: 0.85; margin-top: 6px; font-weight: 400; letter-spacing: 0; }
+
+  main { max-width: 1280px; margin: 24px auto; padding: 0 24px; }
+
+  .toolbar {
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    margin-bottom: 20px; padding: 14px 18px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .toolbar input[type=search] {
+    flex: 1; min-width: 220px; padding: 8px 12px; border: 1px solid var(--border);
+    border-radius: 6px; font-size: 14px;
+  }
+  .toolbar select, .toolbar button {
+    padding: 7px 12px; border: 1px solid var(--border); border-radius: 6px;
+    background: white; font-size: 13px; cursor: pointer;
+  }
+  .toolbar button.primary { background: var(--navy); color: white; border-color: var(--navy); }
+  .toolbar button.primary:hover { background: #2a3a8c; }
+
+  .kpis {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px; margin-bottom: 24px;
+  }
+  .kpi {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px; border-left: 3px solid var(--navy);
+  }
+  .kpi .v { font-size: 26px; font-weight: 700; color: var(--navy); }
+  .kpi .l { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+
+  .tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--border); margin-bottom: 16px; }
+  .tab {
+    padding: 10px 18px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--muted);
+    border-bottom: 2px solid transparent; margin-bottom: -2px;
+  }
+  .tab.active { color: var(--navy); border-bottom-color: var(--accent); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .layer-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    margin-bottom: 12px; overflow: hidden;
+  }
+  .layer-head {
+    padding: 14px 18px; display: flex; align-items: center; gap: 12px; cursor: pointer;
+    user-select: none;
+  }
+  .layer-head:hover { background: #FBFCFD; }
+  .layer-num {
+    width: 32px; height: 32px; border-radius: 16px; background: var(--navy); color: white;
+    display: grid; place-items: center; font-weight: 700; font-size: 14px; flex-shrink: 0;
+  }
+  .layer-title { flex: 1; font-weight: 600; font-size: 15px; }
+  .layer-stats { font-size: 12px; color: var(--muted); display: flex; gap: 10px; }
+  .pill { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .pill.green { background: #E6F5EE; color: var(--green); }
+  .pill.red   { background: #FDE7E8; color: var(--accent); }
+  .pill.grey  { background: #ECEFF3; color: var(--muted); }
+  .layer-body { padding: 0 18px 18px 62px; display: none; }
+  .layer-card.open .layer-body { display: block; }
+  .layer-card.open .arrow { transform: rotate(90deg); }
+  .arrow { width: 0; height: 0; border-style: solid; border-width: 5px 0 5px 7px;
+           border-color: transparent transparent transparent var(--muted); transition: transform 0.15s; }
+
+  .subcat { margin-bottom: 14px; }
+  .subcat-name { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .fact {
+    border-left: 3px solid var(--grey); padding: 8px 12px; margin-bottom: 6px;
+    background: #FAFBFD; border-radius: 0 4px 4px 0; font-size: 13px;
+  }
+  .fact.green { border-left-color: var(--green); background: #F4FAF7; }
+  .fact.red   { border-left-color: var(--accent); background: #FEF6F6; }
+  .fact .src { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .fact .src a { color: var(--navy); text-decoration: none; }
+  .fact .src a:hover { text-decoration: underline; }
+  .fact .meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .red-cat { color: var(--accent); font-weight: 600; }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before { content: ""; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+  .tl-item { position: relative; padding-bottom: 18px; }
+  .tl-item::before { content: ""; position: absolute; left: -22px; top: 4px; width: 12px; height: 12px;
+                     border-radius: 6px; background: var(--navy); border: 2px solid white; box-shadow: 0 0 0 1px var(--border); }
+  .tl-date { font-size: 12px; color: var(--accent); font-weight: 700; letter-spacing: 1px; }
+  .tl-text { font-size: 14px; margin-top: 2px; }
+  .tl-meta { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  /* Facts table */
+  table.facts { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 8px; overflow: hidden;
+                border: 1px solid var(--border); font-size: 13px; }
+  table.facts th { background: var(--navy); color: white; text-align: left; padding: 10px 12px;
+                   font-size: 11px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
+  table.facts td { padding: 10px 12px; border-top: 1px solid var(--border); vertical-align: top; }
+  table.facts tr.hidden { display: none; }
+  table.facts tr:hover td { background: #FBFCFD; }
+
+  footer {
+    margin-top: 32px; padding: 16px 24px; text-align: center; font-size: 12px; color: var(--muted);
+  }
+  code.cmd {
+    display: inline-block; padding: 2px 8px; background: #ECEFF3; border-radius: 4px;
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12px; color: var(--navy);
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="eyebrow">Storytelling Data Lake · v0.1</div>
+    <h1>Accumulator</h1>
+    <div class="meta">Сгенерировано: 2026-04-26 16:26:19</div>
+  </div>
+  <div class="decision-badge watch" title="hard=0, soft=0, green в ключевых слоях=4">
+    <div class="label">Recommendation</div>
+    <div class="name">watch</div>
+    <div class="why">hard=0, soft=0, green в ключевых слоях=4</div>
+  </div>
+</header>
+<main>
+  <div class="kpis">
+    <div class="kpi"><div class="v">16.0%</div><div class="l">Coverage</div></div>
+    <div class="kpi"><div class="v">9</div><div class="l">Facts</div></div>
+    <div class="kpi" style="border-left-color: var(--green)"><div class="v">5</div><div class="l">Green flags</div></div>
+    <div class="kpi" style="border-left-color: var(--accent)"><div class="v">0</div><div class="l">Red flags</div></div>
+    <div class="kpi" style="border-left-color: var(--grey)"><div class="v">4</div><div class="l">Grey (требуют доуточнения)</div></div>
+    <div class="kpi"><div class="v">84.0 дн.</div><div class="l">Freshness P50</div></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-panel="story">Storytelling по слоям</div>
+    <div class="tab" data-panel="timeline">Таймлайн</div>
+    <div class="tab" data-panel="facts">Все факты</div>
+    <div class="tab" data-panel="actions">Действия</div>
+  </div>
+
+  <div class="panel active" id="panel-story">
+    <div class="toolbar">
+      <input type="search" id="story-search" placeholder="Поиск по фактам и цитатам…">
+      <select id="story-flag-filter">
+        <option value="">Все флаги</option>
+        <option value="green">🟢 Только Green</option>
+        <option value="red">🔴 Только Red</option>
+        <option value="grey">⚪ Только Grey</option>
+      </select>
+    </div>
+    <div id="story-container"></div>
+  </div>
+
+  <div class="panel" id="panel-timeline">
+    <div class="toolbar">
+      <input type="search" id="tl-search" placeholder="Поиск по событиям…">
+      <select id="tl-sort">
+        <option value="asc">Старые сверху</option>
+        <option value="desc">Новые сверху</option>
+      </select>
+    </div>
+    <div class="timeline" id="timeline-container"></div>
+  </div>
+
+  <div class="panel" id="panel-facts">
+    <div class="toolbar">
+      <input type="search" id="facts-search" placeholder="Поиск по фактам…">
+      <select id="facts-layer-filter"><option value="">Все слои</option></select>
+      <select id="facts-flag-filter">
+        <option value="">Все флаги</option>
+        <option value="green">Green</option>
+        <option value="red">Red</option>
+        <option value="grey">Grey</option>
+      </select>
+      <select id="facts-source-filter">
+        <option value="">Все источники</option>
+        <option value="online_interview">online_interview</option>
+        <option value="offline_interview">offline_interview</option>
+        <option value="online_research">online_research</option>
+        <option value="archival">archival</option>
+      </select>
+    </div>
+    <table class="facts" id="facts-table">
+      <thead><tr>
+        <th>Слой</th><th>Подкатегория</th><th>Источник</th><th>Флаг</th><th>Текст</th><th>URL</th>
+      </tr></thead>
+      <tbody id="facts-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="panel" id="panel-actions">
+    <div style="background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 24px;">
+      <h3 style="margin-top: 0; color: var(--navy);">Что аналитик может сделать дальше</h3>
+      <p style="color: var(--muted);">В production эти кнопки делают POST в backend. Сейчас прототип — CLI; ниже команды, которые можно скопировать.</p>
+
+      <div style="display: grid; gap: 14px; margin-top: 16px;">
+        <div>
+          <div style="font-weight: 600; margin-bottom: 4px;">▸ Перезапустить сбор</div>
+          <code class="cmd">python storytelling_bot.py --entity accumulator --output report.json --export-html dashboard.html</code>
+        </div>
+        <div>
+          <div style="font-weight: 600; margin-bottom: 4px;">▸ Добавить факт от руки (offline ingest со встречи)</div>
+          <code class="cmd">python storytelling_bot.py --entity accumulator --add-fact "Расшифровка встречи: фаундер подтвердил план B…" --add-fact-source offline_interview --add-fact-url internal://meeting/2026-04-26</code>
+        </div>
+        <div>
+          <div style="font-weight: 600; margin-bottom: 4px;">▸ Сравнить с предыдущим запуском</div>
+          <code class="cmd">python storytelling_bot.py --diff prev_report.json report.json</code>
+        </div>
+        <div>
+          <div style="font-weight: 600; margin-bottom: 4px;">▸ Запустить watch-режим (мок event watcher)</div>
+          <code class="cmd">python storytelling_bot.py --watch --entity accumulator --interval 60</code>
+        </div>
+        <div>
+          <div style="font-weight: 600; margin-bottom: 4px;">▸ Список доступных сущностей</div>
+          <code class="cmd">python storytelling_bot.py --list</code>
+        </div>
+      </div>
+
+      <hr style="margin: 24px 0; border: 0; border-top: 1px solid var(--border);">
+      <h4 style="margin-top: 0; color: var(--navy);">Decision rationale</h4>
+      <p id="rationale-detail" style="font-size: 14px;"></p>
+      <div style="font-size: 12px; color: var(--muted);">
+        ⚠ Бот выдаёт только рекомендацию. Финальное решение всегда утверждает человек —
+        старший аналитик и (при terminate) юрист.
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Источник данных: <code style="font-family: monospace;">demo_report.json</code> ·
+  Последнее обновление: 2026-04-26 16:26:19
+</footer>
+
+<script>
+const PAYLOAD = {"entity_id": "accumulator", "generated_at": "2026-04-26T16:26:19.216690", "metrics": {"coverage_pct": 16.0, "fact_count": 9, "green_count": 5, "red_count": 0, "grey_count": 4, "freshness_days_p50": 84.0}, "decision": {"recommendation": "watch", "rationale": "hard=0, soft=0, green в ключевых слоях=4", "hard_red_count": 0, "soft_red_count": 0, "green_in_key_layers": 4, "evaluated_at": "2026-04-26T16:26:19.216605", "human_approval_required": true}, "timeline": [{"date": "2010-09-01", "entity": "oscar-hartmann", "layer": "Founder Professional Story", "text": "KupiVIP под руководством Оскара Хартманна вышла в лидеры рынка с продажами $250M за пять лет.", "source": "https://web.archive.org/2010/kupivip"}, {"date": "2014-06-01", "entity": "dave-waiser", "layer": "Founder Professional Story", "text": "Gett под руководством Дэйва Вайзера масштабировался до 1500 городов, обслуживая компании из Fortune 500. Привлечено более $1B инвестиций.", "source": "https://web.archive.org/2014/gett-launch"}], "story": {"Founder Professional Story": {"Path to expertise": "ЗЕЛЁНЫЙ:\n  · Дэйв Вайзер: «Я владел значительной долей Gett, готовился к IPO. Началась война — окно закрылось, мои 170 миллионов превратились в цифру в таблице. Я понял, что это нельзя пускать на самотёк». [src: https://youtube.com/watch?v=demo-waiser-podcast]\n  · С 1996 года число публичных компаний в США сократилось почти вдвое — с >7000 до <4000. Средний возраст IPO вырос до 9–11 лет. Объём вторичного рынка достиг $110B в H1 2025. [src: https://news.example/private-market-stay-private]\n  · Gett под руководством Дэйва Вайзера масштабировался до 1500 городов, обслуживая компании из Fortune 500. Привлечено более $1B инвестиций. [src: https://web.archive.org/2014/gett-launch]\n\nСЕРЫЙ (требует доуточнения):\n  · KupiVIP под руководством Оскара Хартманна вышла в лидеры рынка с продажами $250M за пять лет. [src: https://web.archive.org/2010/kupivip]"}, "Community Culture, Values & Stories": {"Attraction & Selection": "ЗЕЛЁНЫЙ:\n  · Внутренняя встреча: фаундер открыто признаёт, что у Accumulator нет публично известного CTO; технологическая команда формируется через нетворк Founders Forum. [src: internal://meetings/2026-04-12-accumulator-call]\n\nСЕРЫЙ (требует доуточнения):\n  · Accumulator работает по invite-only принципу. Критерии входа: оценка >$100M, последний раунд в 2024 году или позже, runway >18 месяцев или прибыльность. [src: https://techcrunch.example/accumulator-launch]"}, "Product & Business": {"Architecture of the solution": "СЕРЫЙ (требует доуточнения):\n  · Оскар Хартманн: «Моя ошибка с Ozon стоила инвесторам 300 миллионов. Сейчас я строю Angels Fund II, чтобы один такой кейс не уничтожал капитал». [src: https://podcast.example/oscar-hartmann-ep42]\n  · Accumulator Fund I зарегистрирован в SEC под Rule 506(b) и Section 3(c)(1). AUM по трём фондам — более $60M. Управляющим выступает Максим Темчук. [src: https://www.sec.gov/edgar/accumulator-fund-i]", "Evolution": "ЗЕЛЁНЫЙ:\n  · В декабре 2024 года Accumulator привлёк $46M при оценке $140M. Среди инвесторов — Авишай Абраами (Wix), Филип Дамес (Zalando), NFX, FJ Labs. [src: https://crunchbase.com/organization/accumulator]"}}, "facts": [{"entity_id": "dave-waiser", "layer": 2, "subcategory": "Path to expertise", "source_type": "online_interview", "text": "Дэйв Вайзер: «Я владел значительной долей Gett, готовился к IPO. Началась война — окно закрылось, мои 170 миллионов превратились в цифру в таблице. Я понял, что это нельзя пускать на самотёк».", "source_url": "https://youtube.com/watch?v=demo-waiser-podcast", "captured_at": "2025-11-10T00:00:00", "flag": "green", "confidence": 0.8, "event_date": null, "red_flag_category": null}, {"entity_id": "oscar-hartmann", "layer": 6, "subcategory": "Architecture of the solution", "source_type": "online_interview", "text": "Оскар Хартманн: «Моя ошибка с Ozon стоила инвесторам 300 миллионов. Сейчас я строю Angels Fund II, чтобы один такой кейс не уничтожал капитал».", "source_url": "https://podcast.example/oscar-hartmann-ep42", "captured_at": "2026-01-15T00:00:00", "flag": "grey", "confidence": 0.8, "event_date": null, "red_flag_category": null}, {"entity_id": "accumulator", "layer": 6, "subcategory": "Architecture of the solution", "source_type": "online_research", "text": "Accumulator Fund I зарегистрирован в SEC под Rule 506(b) и Section 3(c)(1). AUM по трём фондам — более $60M. Управляющим выступает Максим Темчук.", "source_url": "https://www.sec.gov/edgar/accumulator-fund-i", "captured_at": "2026-02-01T00:00:00", "flag": "grey", "confidence": 0.95, "event_date": null, "red_flag_category": null}, {"entity_id": "accumulator", "layer": 6, "subcategory": "Evolution", "source_type": "online_research", "text": "В декабре 2024 года Accumulator привлёк $46M при оценке $140M. Среди инвесторов — Авишай Абраами (Wix), Филип Дамес (Zalando), NFX, FJ Labs.", "source_url": "https://crunchbase.com/organization/accumulator", "captured_at": "2026-03-12T00:00:00", "flag": "green", "confidence": 0.9, "event_date": null, "red_flag_category": null}, {"entity_id": "accumulator", "layer": 3, "subcategory": "Attraction & Selection", "source_type": "online_research", "text": "Accumulator работает по invite-only принципу. Критерии входа: оценка >$100M, последний раунд в 2024 году или позже, runway >18 месяцев или прибыльность.", "source_url": "https://techcrunch.example/accumulator-launch", "captured_at": "2026-03-20T00:00:00", "flag": "grey", "confidence": 0.7, "event_date": null, "red_flag_category": null}, {"entity_id": "accumulator", "layer": 2, "subcategory": "Path to expertise", "source_type": "online_research", "text": "С 1996 года число публичных компаний в США сократилось почти вдвое — с >7000 до <4000. Средний возраст IPO вырос до 9–11 лет. Объём вторичного рынка достиг $110B в H1 2025.", "source_url": "https://news.example/private-market-stay-private", "captured_at": "2026-02-25T00:00:00", "flag": "green", "confidence": 0.8, "event_date": null, "red_flag_category": null}, {"entity_id": "dave-waiser", "layer": 2, "subcategory": "Path to expertise", "source_type": "archival", "text": "Gett под руководством Дэйва Вайзера масштабировался до 1500 городов, обслуживая компании из Fortune 500. Привлечено более $1B инвестиций.", "source_url": "https://web.archive.org/2014/gett-launch", "captured_at": "2025-12-01T00:00:00", "flag": "green", "confidence": 0.9, "event_date": "2014-06-01", "red_flag_category": null}, {"entity_id": "oscar-hartmann", "layer": 2, "subcategory": "Path to expertise", "source_type": "archival", "text": "KupiVIP под руководством Оскара Хартманна вышла в лидеры рынка с продажами $250M за пять лет.", "source_url": "https://web.archive.org/2010/kupivip", "captured_at": "2025-12-02T00:00:00", "flag": "grey", "confidence": 0.7, "event_date": "2010-09-01", "red_flag_category": null}, {"entity_id": "accumulator", "layer": 3, "subcategory": "Attraction & Selection", "source_type": "offline_interview", "text": "Внутренняя встреча: фаундер открыто признаёт, что у Accumulator нет публично известного CTO; технологическая команда формируется через нетворк Founders Forum.", "source_url": "internal://meetings/2026-04-12-accumulator-call", "captured_at": "2026-04-12T00:00:00", "flag": "green", "confidence": 0.8, "event_date": null, "red_flag_category": null}]};
+
+// ---- helpers ----
+const $ = (s, root = document) => root.querySelector(s);
+const $$ = (s, root = document) => Array.from(root.querySelectorAll(s));
+
+const LAYER_NUM = (() => {
+  const list = Object.keys(PAYLOAD.story);
+  const m = {};
+  list.forEach((name, idx) => m[name] = idx + 1);
+  return m;
+})();
+
+// ---- tabs ----
+$$(".tab").forEach(t => t.addEventListener("click", () => {
+  $$(".tab").forEach(x => x.classList.remove("active"));
+  $$(".panel").forEach(x => x.classList.remove("active"));
+  t.classList.add("active");
+  $("#panel-" + t.dataset.panel).classList.add("active");
+}));
+
+// ---- story panel ----
+function renderStory() {
+  const cont = $("#story-container");
+  cont.innerHTML = "";
+  const facts_by_layer_sub = {};
+  PAYLOAD.facts.forEach(f => {
+    const layer = Object.keys(PAYLOAD.story).find(n => true && Object.keys(PAYLOAD.story[n]).includes(f.subcategory));
+    const layerName = layer || `Layer ${f.layer}`;
+    facts_by_layer_sub[layerName] = facts_by_layer_sub[layerName] || {};
+    facts_by_layer_sub[layerName][f.subcategory] = facts_by_layer_sub[layerName][f.subcategory] || [];
+    facts_by_layer_sub[layerName][f.subcategory].push(f);
+  });
+
+  Object.keys(PAYLOAD.story).forEach(layerName => {
+    const subs = PAYLOAD.story[layerName];
+    let totalFacts = 0, green = 0, red = 0, grey = 0;
+    Object.values(facts_by_layer_sub[layerName] || {}).forEach(arr => {
+      arr.forEach(f => {
+        totalFacts++;
+        if (f.flag === "green") green++;
+        else if (f.flag === "red") red++;
+        else grey++;
+      });
+    });
+
+    const card = document.createElement("div");
+    card.className = "layer-card";
+    card.dataset.layerName = layerName;
+    card.innerHTML = `
+      <div class="layer-head">
+        <div class="arrow"></div>
+        <div class="layer-num">${LAYER_NUM[layerName] || "?"}</div>
+        <div class="layer-title">${layerName}</div>
+        <div class="layer-stats">
+          <span class="pill green">🟢 ${green}</span>
+          <span class="pill red">🔴 ${red}</span>
+          <span class="pill grey">⚪ ${grey}</span>
+        </div>
+      </div>
+      <div class="layer-body"></div>
+    `;
+    const body = card.querySelector(".layer-body");
+    Object.keys(subs).forEach(subName => {
+      const subDiv = document.createElement("div");
+      subDiv.className = "subcat";
+      subDiv.innerHTML = `<div class="subcat-name">${subName}</div>`;
+      const arr = (facts_by_layer_sub[layerName] || {})[subName] || [];
+      if (arr.length === 0) {
+        subDiv.innerHTML += `<div class="fact grey"><em style="color: var(--muted)">(нет фактов в этой подкатегории — серое поле)</em></div>`;
+      } else {
+        arr.forEach(f => {
+          const factEl = document.createElement("div");
+          factEl.className = "fact " + f.flag;
+          factEl.dataset.flag = f.flag;
+          factEl.dataset.text = (f.text || "").toLowerCase();
+          factEl.innerHTML = `
+            <div>${f.text}</div>
+            <div class="meta">
+              <strong>${f.source_type}</strong> · confidence ${(f.confidence || 0).toFixed(2)}
+              ${f.red_flag_category ? ' · <span class="red-cat">' + f.red_flag_category + "</span>" : ""}
+            </div>
+            <div class="src"><a href="${f.source_url}" target="_blank">${f.source_url}</a></div>
+          `;
+          subDiv.appendChild(factEl);
+        });
+      }
+      body.appendChild(subDiv);
+    });
+
+    card.querySelector(".layer-head").addEventListener("click", () => card.classList.toggle("open"));
+    cont.appendChild(card);
+  });
+  // open first by default
+  cont.querySelector(".layer-card")?.classList.add("open");
+}
+
+function applyStoryFilters() {
+  const q = $("#story-search").value.toLowerCase().trim();
+  const flag = $("#story-flag-filter").value;
+  $$(".fact").forEach(el => {
+    const matchQ = !q || (el.dataset.text || "").includes(q);
+    const matchF = !flag || el.dataset.flag === flag;
+    el.style.display = (matchQ && matchF) ? "" : "none";
+  });
+}
+$("#story-search").addEventListener("input", applyStoryFilters);
+$("#story-flag-filter").addEventListener("change", applyStoryFilters);
+
+// ---- timeline ----
+function renderTimeline() {
+  const cont = $("#timeline-container");
+  cont.innerHTML = "";
+  let items = [...PAYLOAD.timeline];
+  const order = $("#tl-sort").value;
+  items.sort((a, b) => order === "asc" ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date));
+  const q = $("#tl-search").value.toLowerCase().trim();
+  items.filter(e => !q || e.text.toLowerCase().includes(q) || e.layer.toLowerCase().includes(q))
+       .forEach(e => {
+    const d = document.createElement("div");
+    d.className = "tl-item";
+    d.innerHTML = `
+      <div class="tl-date">${e.date}</div>
+      <div class="tl-text">${e.text}</div>
+      <div class="tl-meta">${e.layer} · ${e.entity} · <a href="${e.source}" target="_blank">источник</a></div>
+    `;
+    cont.appendChild(d);
+  });
+  if (items.length === 0) {
+    cont.innerHTML = '<div style="color: var(--muted); padding: 16px;">Датируемых событий пока нет.</div>';
+  }
+}
+$("#tl-search").addEventListener("input", renderTimeline);
+$("#tl-sort").addEventListener("change", renderTimeline);
+
+// ---- facts table ----
+function renderFactsTable() {
+  const tbody = $("#facts-tbody");
+  tbody.innerHTML = "";
+  const layerSel = $("#facts-layer-filter");
+  const layers = Object.keys(PAYLOAD.story);
+  if (layerSel.options.length <= 1) {
+    layers.forEach(l => {
+      const o = document.createElement("option"); o.value = l; o.text = l;
+      layerSel.appendChild(o);
+    });
+  }
+  PAYLOAD.facts.forEach(f => {
+    const tr = document.createElement("tr");
+    const layerName = layers.find(n => Object.keys(PAYLOAD.story[n]).includes(f.subcategory)) || `Layer ${f.layer}`;
+    tr.dataset.layer = layerName;
+    tr.dataset.flag = f.flag;
+    tr.dataset.source = f.source_type;
+    tr.dataset.text = (f.text || "").toLowerCase();
+    tr.innerHTML = `
+      <td>${LAYER_NUM[layerName] || "?"}. ${layerName}</td>
+      <td>${f.subcategory}</td>
+      <td><code style="font-size: 11px;">${f.source_type}</code></td>
+      <td><span class="pill ${f.flag}">${f.flag}</span>${f.red_flag_category ? '<br><small class="red-cat">' + f.red_flag_category + "</small>" : ""}</td>
+      <td>${f.text}</td>
+      <td><a href="${f.source_url}" target="_blank">↗</a></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+function applyFactsFilters() {
+  const q = $("#facts-search").value.toLowerCase().trim();
+  const layer = $("#facts-layer-filter").value;
+  const flag = $("#facts-flag-filter").value;
+  const source = $("#facts-source-filter").value;
+  $$("#facts-tbody tr").forEach(tr => {
+    const ok = (!q || tr.dataset.text.includes(q))
+            && (!layer || tr.dataset.layer === layer)
+            && (!flag || tr.dataset.flag === flag)
+            && (!source || tr.dataset.source === source);
+    tr.classList.toggle("hidden", !ok);
+  });
+}
+["#facts-search", "#facts-layer-filter", "#facts-flag-filter", "#facts-source-filter"].forEach(s =>
+  $(s).addEventListener("input", applyFactsFilters));
+
+// ---- rationale ----
+$("#rationale-detail").innerHTML = `
+  <strong>${(PAYLOAD.decision.recommendation || "?").toUpperCase()}</strong>:
+  ${PAYLOAD.decision.rationale || "(no rationale)"}
+  <br><small style="color: var(--muted);">
+    Hard red: ${PAYLOAD.decision.hard_red_count} ·
+    Soft red: ${PAYLOAD.decision.soft_red_count} ·
+    Green в ключевых слоях (1, 2, 6): ${PAYLOAD.decision.green_in_key_layers}
+  </small>
+`;
+
+// initial render
+renderStory();
+renderTimeline();
+renderFactsTable();
+</script>
+</body>
+</html>

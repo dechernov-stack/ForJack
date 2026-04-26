@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+.python-version
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+secrets/
+
+# Data
+data/
+reports/*.json
+reports/*.html
+*.sqlite
+*.sqlite3
+offline_overlay.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Playwright browsers cache
+~/.cache/ms-playwright/

@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "storytelling-bot"
+version = "0.1.0"
+description = "Multi-agent system that fills an 8-layer storytelling data lake on companies and founders, builds timelines and surfaces red flags."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Analyst team" }]
+license = { text = "Internal" }
+
+[project.scripts]
+storyteller = "storytelling_bot.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "RUF"]
+ignore = ["E501"]
