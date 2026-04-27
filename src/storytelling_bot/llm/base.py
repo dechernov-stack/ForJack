@@ -1,0 +1,13 @@
+"""LLMClient Protocol — vendor-agnostic interface."""
+from __future__ import annotations
+
+from typing import Optional, Protocol, Tuple
+
+from storytelling_bot.schema import Fact, Layer
+
+
+class LLMClient(Protocol):
+    def classify_fact(self, text: str) -> Tuple[Layer, str, float]: ...
+    def synthesize_layer(self, layer: Layer, facts: list[Fact]) -> str: ...
+    def judge_red_flag(self, text: str) -> Optional[Tuple[str, float]]: ...
+    def classify_green(self, text: str) -> bool: ...
