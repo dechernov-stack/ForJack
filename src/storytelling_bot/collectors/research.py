@@ -5,13 +5,12 @@ import hashlib
 import json
 import logging
 import os
-import re
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 try:
     from tavily import TavilyClient
@@ -33,10 +32,10 @@ def _sha256(text: str) -> str:
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
-def _write_bronze(entity_id: str, source: str, raw: Dict[str, Any]) -> Optional[str]:
+def _write_bronze(entity_id: str, source: str, raw: dict[str, Any]) -> str | None:
     """Persist raw dict to Bronze. Returns sha if new, None if duplicate."""
     content = json.dumps(raw, ensure_ascii=False, sort_keys=True)
     sha = _sha256(content)
@@ -48,13 +47,13 @@ def _write_bronze(entity_id: str, source: str, raw: Dict[str, Any]) -> Optional[
     return sha
 
 
-def _write_silver(entity_id: str, source: str, sha: str, record: Dict[str, Any]) -> None:
+def _write_silver(entity_id: str, source: str, sha: str, record: dict[str, Any]) -> None:
     path = _SILVER_ROOT / entity_id / source / f"{sha}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def _normalize(entity_id: str, source: str, url: str, text: str, captured_at: str) -> Dict[str, Any]:
+def _normalize(entity_id: str, source: str, url: str, text: str, captured_at: str) -> dict[str, Any]:
     return {
         "source_type": SourceType.ONLINE_RESEARCH,
         "url": url,
@@ -67,11 +66,11 @@ def _normalize(entity_id: str, source: str, url: str, text: str, captured_at: st
 
 # ── Wikipedia alias fallback ─────────────────────────────────────────────────
 
-def _get_aliases(entity_id: str) -> List[str]:
+def _get_aliases(entity_id: str) -> list[str]:
     """Fetch redirects from Wikipedia as aliases. Non-fatal on error."""
     try:
         name = entity_id.replace("-", " ").title()
-        url = f"https://en.wikipedia.org/w/api.php"
+        url = "https://en.wikipedia.org/w/api.php"
         resp = httpx.get(
             url,
             params={"action": "query", "titles": name, "redirects": 1, "format": "json"},
@@ -96,7 +95,7 @@ class _TavilyRateLimit(Exception):
     stop=stop_after_attempt(4),
     reraise=True,
 )
-def _tavily_search(client, query: str, max_results: int = 10) -> List[Dict]:
+def _tavily_search(client, query: str, max_results: int = 10) -> list[dict]:
     try:
         result = client.search(query=query, max_results=max_results, search_depth="basic")
         return result.get("results", [])
@@ -108,7 +107,7 @@ def _tavily_search(client, query: str, max_results: int = 10) -> List[Dict]:
         return []
 
 
-def _collect_tavily(entity_id: str) -> List[Dict[str, Any]]:
+def _collect_tavily(entity_id: str) -> list[dict[str, Any]]:
     api_key = os.environ.get("TAVILY_API_KEY", "")
     if not api_key:
         log.warning("TAVILY_API_KEY not set — skipping Tavily")
@@ -117,7 +116,7 @@ def _collect_tavily(entity_id: str) -> List[Dict[str, Any]]:
     client = TavilyClient(api_key=api_key)
 
     aliases = _get_aliases(entity_id)
-    queries = [entity_id.replace("-", " ")] + aliases[:2]
+    queries = [entity_id.replace("-", " "), *aliases[:2]]
 
     chunks = []
     seen_urls: set[str] = set()
@@ -145,9 +144,9 @@ def _collect_tavily(entity_id: str) -> List[Dict[str, Any]]:
 
 # ── GDELT ────────────────────────────────────────────────────────────────────
 
-def _collect_gdelt(entity_id: str) -> List[Dict[str, Any]]:
+def _collect_gdelt(entity_id: str) -> list[dict[str, Any]]:
     name = entity_id.replace("-", " ")
-    end = datetime.now(timezone.utc)
+    end = datetime.now(UTC)
     start = end - timedelta(days=30)
     query = f'"{name}"'
 
@@ -199,13 +198,8 @@ def _collect_gdelt(entity_id: str) -> List[Dict[str, Any]]:
 
 # ── SEC EDGAR ────────────────────────────────────────────────────────────────
 
-def _collect_sec(entity_id: str) -> List[Dict[str, Any]]:
+def _collect_sec(entity_id: str) -> list[dict[str, Any]]:
     """Try SEC EDGAR. Silently returns [] for private companies (no CIK found)."""
-    try:
-        from sec_edgar_downloader import Downloader
-    except ImportError:
-        return []
-
     dl_dir = Path("data/bronze") / entity_id / "sec_raw"
     dl_dir.mkdir(parents=True, exist_ok=True)
 
@@ -225,7 +219,6 @@ def _collect_sec(entity_id: str) -> List[Dict[str, Any]]:
     chunks = []
     for hit in hits[:10]:
         src = hit.get("_source", {})
-        filing_url = "https://www.sec.gov/Archives/" + src.get("file_date", "")
         form_type = src.get("form_type", "D")
         filed_at = src.get("file_date", _now_iso()[:10])
         entity_name = src.get("display_names", [name])[0] if src.get("display_names") else name
@@ -250,12 +243,12 @@ def _collect_sec(entity_id: str) -> List[Dict[str, Any]]:
 class ResearchCollector:
     source_type = SourceType.ONLINE_RESEARCH
 
-    def collect(self, entity_id: str) -> List[Dict[str, Any]]:
+    def collect(self, entity_id: str) -> list[dict[str, Any]]:
         # Always include demo corpus items for known entities
         demo = DEMO_CORPUS.get(entity_id, [])
         demo_chunks = [c for c in demo if c["source_type"] == self.source_type]
 
-        live: List[Dict[str, Any]] = []
+        live: list[dict[str, Any]] = []
         live.extend(_collect_tavily(entity_id))
         live.extend(_collect_gdelt(entity_id))
         live.extend(_collect_sec(entity_id))

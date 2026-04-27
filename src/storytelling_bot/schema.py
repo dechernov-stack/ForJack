@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 import datetime as dt
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from enum import Enum, StrEnum
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -19,7 +19,7 @@ class Layer(int, Enum):
     PEST_CONTEXT = 8
 
 
-LAYER_LABEL: Dict[Layer, str] = {
+LAYER_LABEL: dict[Layer, str] = {
     Layer.FOUNDER_PERSONAL: "Founder Personal Story",
     Layer.FOUNDER_PROFESSIONAL: "Founder Professional Story",
     Layer.COMMUNITY_CULTURE: "Community Culture, Values & Stories",
@@ -30,7 +30,7 @@ LAYER_LABEL: Dict[Layer, str] = {
     Layer.PEST_CONTEXT: "Political, Economical, Social & Technological Context",
 }
 
-SUBCATEGORIES: Dict[Layer, Tuple[str, ...]] = {
+SUBCATEGORIES: dict[Layer, tuple[str, ...]] = {
     Layer.FOUNDER_PERSONAL: ("Origin & Childhood", "Values & Beliefs", "Fears & Vulnerability", "Dreams & Identity"),
     Layer.FOUNDER_PROFESSIONAL: ("Path to expertise", "Founder role & motivation", "Co-founder dynamics"),
     Layer.COMMUNITY_CULTURE: ("Attraction & Selection", "Shared life", "Investors & Partners"),
@@ -42,14 +42,14 @@ SUBCATEGORIES: Dict[Layer, Tuple[str, ...]] = {
 }
 
 
-class SourceType(str, Enum):
+class SourceType(StrEnum):
     ONLINE_INTERVIEW = "online_interview"
     OFFLINE_INTERVIEW = "offline_interview"
     ONLINE_RESEARCH = "online_research"
     ARCHIVAL = "archival"
 
 
-class Flag(str, Enum):
+class Flag(StrEnum):
     GREEN = "green"
     RED = "red"
     GREY = "grey"
@@ -66,10 +66,10 @@ class Fact(BaseModel):
     captured_at: dt.datetime
     flag: Flag = Flag.GREY
     confidence: float = 0.5
-    event_date: Optional[dt.date] = None
-    red_flag_category: Optional[str] = None
+    event_date: dt.date | None = None
+    red_flag_category: str | None = None
 
-    def to_jsonable(self) -> Dict[str, Any]:
+    def to_jsonable(self) -> dict[str, Any]:
         d = self.model_dump()
         d["layer"] = self.layer.value
         d["source_type"] = self.source_type.value
@@ -83,13 +83,13 @@ class Fact(BaseModel):
 class State(BaseModel):
     """Graph state passed between nodes."""
     entity_id: str
-    raw_chunks: List[Dict[str, Any]] = Field(default_factory=list)
-    facts: List[Fact] = Field(default_factory=list)
-    timeline: List[Dict[str, Any]] = Field(default_factory=list)
-    story: Dict[str, Dict[str, str]] = Field(default_factory=dict)
-    decision: Dict[str, Any] = Field(default_factory=dict)
-    report_path: Optional[str] = None
-    metrics: Dict[str, Any] = Field(default_factory=dict)
-    errors: List[str] = Field(default_factory=list)
+    raw_chunks: list[dict[str, Any]] = Field(default_factory=list)
+    facts: list[Fact] = Field(default_factory=list)
+    timeline: list[dict[str, Any]] = Field(default_factory=list)
+    story: dict[str, dict[str, str]] = Field(default_factory=dict)
+    decision: dict[str, Any] = Field(default_factory=dict)
+    report_path: str | None = None
+    metrics: dict[str, Any] = Field(default_factory=dict)
+    errors: list[str] = Field(default_factory=list)
 
     model_config = {"arbitrary_types_allowed": True}

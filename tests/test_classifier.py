@@ -7,7 +7,7 @@ from storytelling_bot.schema import Layer
 
 def test_classifier_picks_product_layer():
     client = MockClient()
-    layer, sub, conf = client.classify_fact(
+    layer, _sub, conf = client.classify_fact(
         "Equity pooling под Rule 506(b), Fund I и Fund II, AUM $60M"
     )
     assert layer == Layer.PRODUCT_BUSINESS
