@@ -1,0 +1,23 @@
+# Production overlay — adds nginx reverse proxy.
+# Usage: docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:8080"   # Langfuse UI
+      - "8081:8081"   # MinIO Console
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/.htpasswd:/etc/nginx/.htpasswd:ro
+    depends_on:
+      - langfuse
+      - minio
+    restart: unless-stopped
+
+  # Override: don't expose internal ports publicly in prod
+  langfuse:
+    ports: []
+
+  minio:
+    ports:
+      - "9000:9000"   # S3 API (used by app internally — keep, but firewall it)

@@ -1,0 +1,18 @@
+[Unit]
+Description=Storytelling Bot — single pipeline run
+After=network.target docker.service
+
+[Service]
+Type=oneshot
+User=storyteller
+WorkingDirectory=/opt/storytelling-bot
+EnvironmentFile=/opt/storytelling-bot/.env
+# Run all entities listed in WATCHLIST (space-separated), e.g. "stripe anthropic"
+ExecStart=/bin/bash -c '\
+  for entity in $WATCHLIST_ENTITIES; do \
+    storyteller run --entity "$entity"; \
+  done'
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=storyteller
+TimeoutStartSec=1800
