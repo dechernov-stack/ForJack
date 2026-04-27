@@ -32,11 +32,12 @@ sec-edgar-downloader>=5.0  # SEC EDGAR
 
 # --- Audio / video ---
 yt-dlp>=2024.10
-# faster-whisper       # ставить отдельно (CUDA/CPU), смотри CLAUDE_TASKS.md шаг 6
+faster-whisper>=1.0   # CPU transcription (int8)
 # pyannote.audio       # диаризация — отдельно
 
 # --- Storage ---
-psycopg[binary]>=3.2  # Postgres
+sqlalchemy>=2.0       # ORM/Core for Postgres
+psycopg2-binary>=2.9  # Postgres driver
 qdrant-client>=1.12
 boto3>=1.35           # S3 / MinIO
 neo4j>=5.24           # Knowledge graph (опц.)
