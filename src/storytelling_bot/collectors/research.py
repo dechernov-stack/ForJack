@@ -108,6 +108,9 @@ def _tavily_search(client, query: str, max_results: int = 10) -> list[dict]:
 
 
 def _collect_tavily(entity_id: str) -> list[dict[str, Any]]:
+    if TavilyClient is None:
+        log.warning("tavily-python not installed — skipping Tavily")
+        return []
     api_key = os.environ.get("TAVILY_API_KEY", "")
     if not api_key:
         log.warning("TAVILY_API_KEY not set — skipping Tavily")
