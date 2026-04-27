@@ -29,7 +29,7 @@ services:
       retries: 10
 
   langfuse:
-    image: langfuse/langfuse:latest
+    image: langfuse/langfuse:2
     depends_on:
       langfuse-db: { condition: service_healthy }
     ports: ["3000:3000"]
