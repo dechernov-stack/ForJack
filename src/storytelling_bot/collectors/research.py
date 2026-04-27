@@ -18,6 +18,7 @@ try:
 except ImportError:
     TavilyClient = None  # type: ignore[assignment,misc]
 
+from storytelling_bot.collectors.base import DEMO_CORPUS
 from storytelling_bot.schema import SourceType
 
 log = logging.getLogger(__name__)
@@ -250,8 +251,13 @@ class ResearchCollector:
     source_type = SourceType.ONLINE_RESEARCH
 
     def collect(self, entity_id: str) -> List[Dict[str, Any]]:
-        results: List[Dict[str, Any]] = []
-        results.extend(_collect_tavily(entity_id))
-        results.extend(_collect_gdelt(entity_id))
-        results.extend(_collect_sec(entity_id))
-        return results
+        # Always include demo corpus items for known entities
+        demo = DEMO_CORPUS.get(entity_id, [])
+        demo_chunks = [c for c in demo if c["source_type"] == self.source_type]
+
+        live: List[Dict[str, Any]] = []
+        live.extend(_collect_tavily(entity_id))
+        live.extend(_collect_gdelt(entity_id))
+        live.extend(_collect_sec(entity_id))
+
+        return demo_chunks + live
