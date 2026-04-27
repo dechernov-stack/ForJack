@@ -1,0 +1,316 @@
+{
+  "entity_id": "anthropic",
+  "generated_at": "2026-04-27T11:16:30.462692+00:00",
+  "metrics": {
+    "coverage_pct": 16.0,
+    "fact_count": 20,
+    "green_count": 0,
+    "red_count": 0,
+    "grey_count": 20,
+    "freshness_days_p50": 392.5
+  },
+  "decision": {
+    "recommendation": "watch",
+    "rationale": "hard=0, soft=0, green в ключевых слоях=0",
+    "hard_red_count": 0,
+    "soft_red_count": 0,
+    "green_in_key_layers": 0,
+    "evaluated_at": "2026-04-27T11:16:30.462022+00:00",
+    "human_approval_required": true
+  },
+  "timeline": [
+    {
+      "date": "2013-05-22",
+      "entity": "anthropic",
+      "layer": "Political, Economical, Social & Technological Context",
+      "text": "anthropic.com X Submit your offer to rent anthropic.com Please complete each field with your information Name Enter your name Email Enter email address Phone Enter phone number Offer amount (per month) and duration $ /month 50 Enter offer 3 months 6 months 12 months e.g. $ 100 /month for 12 months Further comments here --> --> Welcome to anthropic.com &copy; 2013 anthropic.com. All Rights Reserved. Contact Us Privacy",
+      "source": "https://web.archive.org/web/20130522024254/http://anthropic.com/"
+    },
+    {
+      "date": "2013-06-15",
+      "entity": "anthropic",
+      "layer": "Political, Economical, Social & Technological Context",
+      "text": "anthropic.com X Submit your offer to rent anthropic.com Please complete each field with your information Name Enter your name Email Enter email address Phone Enter phone number Offer amount (per month) and duration $ /month 50 Enter offer 3 months 6 months 12 months e.g. $ 100 /month for 12 months Further comments here --> --> Welcome to anthropic.com &copy; 2013 anthropic.com. All Rights Reserved. Contact Us Privacy",
+      "source": "https://web.archive.org/web/20130615000326/http://www.anthropic.com:80/"
+    },
+    {
+      "date": "2013-07-19",
+      "entity": "anthropic",
+      "layer": "Political, Economical, Social & Technological Context",
+      "text": "anthropic.com X Submit your offer to rent anthropic.com Please complete each field with your information Name Enter your name Email Enter email address Phone Enter phone number Offer amount (per month) and duration $ /month 50 Enter offer 3 months 6 months 12 months e.g. $ 100 /month for 12 months Further comments here --> --> Welcome to anthropic.com &copy; 2013 anthropic.com. All Rights Reserved. Contact Us Privacy",
+      "source": "https://web.archive.org/web/20130719144242/http://www.anthropic.com:80/"
+    }
+  ],
+  "story": {
+    "Product & Business": {
+      "Architecture of the solution": "СЕРЫЙ (требует доуточнения):\n  · Anthropic Capital Fund, LP  (CIK 0001931731) filed D with SEC on 2024-01-04. [src: https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D]\n  · Hiive Anthropic Series VII a Series of Hiive Anthropic LLC  (CIK 0002065512) filed D with SEC on 2025-04-25. [src: https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D]\n  · Hiive Anthropic Series II a Series of Hiive Anthropic LLC  (CIK 0002019525) filed D with SEC on 2024-04-15. [src: https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D]\n  · Hiive Anthropic Series V a Series of Hiive Anthropic LLC  (CIK 0002026315) filed D with SEC on 2024-06-10. [src: https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D]\n  · Hiive Anthropic Series VI a Series of Hiive Anthropic LLC  (CIK 0002058941) filed D with SEC on 2025-03-05. [src: https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D]\n  · Anthropic Capital Fund, LP  (CIK 0001931731) filed D with SEC on 2023-01-09. [src: https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D]\n  · Anthropic Alternate Fund II, a series of MAV Alternate Investments, LP  (CIK 0002021090) filed D with SEC on 2024-09-13. [src: https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D]\n  · HII Anthropic-01, a Series of HII Anthropic, LLC  (CIK 0002118444) filed D with SEC on 2026-03-13. [src: https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D]\n  · Anthropic Capital Fund, LP  (CIK 0001931731) filed D with SEC on 2025-12-18. [src: https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D]"
+    },
+    "Political, Economical, Social & Technological Context": {
+      "Market & technology": "СЕРЫЙ (требует доуточнения):\n  · *   [(Top)](https://en.wikipedia.org/wiki/Anthropic#). *   [8 See also](https://en.wikipedia.org/wiki/Anthropic#See_also). Number of employees 2,500 (2026)[[6]](https://en.wikipedia.org/wiki/Anthropic#cite_note-6). 2.   **[^](https://en.wikipedia.org/wiki/Anthropic#cite_ref-2)**Nellis, Stephen (May 9, 2023). 8.   **[^](https://en.wikipedia.org/wiki/Anthropic#cite_ref-8)**[\"Anthropic: Company Overview & News\"](https://www.forbes.com/companies/anthropic/). **[^](https://en.wikipedia.org/wiki/Anthr [src: https://en.wikipedia.org/wiki/Anthropic]\n  · Anthropic✓ ... We're an AI safety and research company that builds reliable, interpretable, and steerable AI systems. Talk to our AI assistant @claudeai on claude [src: https://x.com/AnthropicAI]\n  · [](https://www.youtube.com/@anthropic-ai). [](https://www.youtube.com/@anthropic-ai). [](https://www.youtube.com/@anthropic-ai). [](https://www.youtube.com/@anthropic-ai). [](https://www.youtube.com/@anthropic-ai). [](https://www.youtube.com/@anthropic-ai). ![Image 6](https://www.youtube.com/@anthropic-ai). [](https://www.youtube.com/@anthropic-ai). [](https://www.youtube.com/@anthropic-ai \"Share link\")- [x] Include playlist. ![Image 8](https://www.youtube.com/@anthropic-ai). [Play all](https:// [src: https://www.youtube.com/@anthropic-ai]\n  · *   [Research](https://www.anthropic.com/research). *   [Claude's Constitution](https://www.anthropic.com/constitution). *   [Tutorials](https://claude.com/resources/tutorials). *   [About](https://www.anthropic.com/company). *   [Careers](https://www.anthropic.com/careers). *   [News](https://www.anthropic.com/news). *   [Claude](https://claude.com/product/overview). *   [Pricing](https://claude.com/pricing). *   [Opus](https://www.anthropic.com/claude/opus). *   [Sonnet](https://www.anthropic. [src: https://www.anthropic.com/]\n  · ### [Finance](https://finance.yahoo.com/). * [My Portfolio](https://finance.yahoo.com/portfolios/). * [News](https://finance.yahoo.com/news/). + [Crypto](https://finance.yahoo.com/markets/crypto/). + [Tech](https://finance.yahoo.com/topic/tech/). + [More Topics](https://finance.yahoo.com/news/). * [Markets](https://finance.yahoo.com/markets/). + [Stocks](https://finance.yahoo.com/markets/stocks/). + [Crypto](https://finance.yahoo.com/markets/crypto/all/). - [Tech](https://finance.yahoo.com/marke [src: https://finance.yahoo.com/quote/ANTH.PVT/]\n  · [![Image 12: Anthropic and Amazon expand collaboration for up to 5 gigawatts of new compute](https://www.linkedin.com/company/anthropicresearch) Anthropic and Amazon expand collaboration for up to 5 gigawatts of new compute anthropic.com](https://www.linkedin.com/redir/redirect?url=https%3A%2F%2Fwww%2Eanthropic%2Ecom%2Fnews%2Fanthropic-amazon-compute&urlhash=udBE&trk=organization_guest_main-feed-card_feed-article-content). [Anthropic](https://www.linkedin.com/company/anthropicresearch?trk=organi [src: https://www.linkedin.com/company/anthropicresearch]\n  · Master MCP's three core primitives—tools, resources, and prompts—to connect Claude with external services](https://anthropic.skilljar.com/introduction-to-model-context-protocol \"Introduction to Model Context Protocol\")[![Image 9](https://anthropic.skilljar.com/static/skilljar-monorepo/statics/dist/img/transparent.d89746888da2.gif) AI Fluency for educators This course empowers faculty, instructional designers, and educational leaders to apply AI Fluency into their own teaching practice and instit [src: https://anthropic.skilljar.com/]",
+      "Policy & regulation": "СЕРЫЙ (требует доуточнения):\n  · Anthropic Capital Fund, LP  (CIK 0001931731) filed D with SEC on 2025-01-02. [src: https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D]",
+      "Historical moment": "СЕРЫЙ (требует доуточнения):\n  · anthropic.com X Submit your offer to rent anthropic.com Please complete each field with your information Name Enter your name Email Enter email address Phone Enter phone number Offer amount (per month) and duration $ /month 50 Enter offer 3 months 6 months 12 months e.g. $ 100 /month for 12 months Further comments here --> --> Welcome to anthropic.com &copy; 2013 anthropic.com. All Rights Reserved. Contact Us Privacy [src: https://web.archive.org/web/20130522024254/http://anthropic.com/]\n  · anthropic.com X Submit your offer to rent anthropic.com Please complete each field with your information Name Enter your name Email Enter email address Phone Enter phone number Offer amount (per month) and duration $ /month 50 Enter offer 3 months 6 months 12 months e.g. $ 100 /month for 12 months Further comments here --> --> Welcome to anthropic.com &copy; 2013 anthropic.com. All Rights Reserved. Contact Us Privacy [src: https://web.archive.org/web/20130615000326/http://www.anthropic.com:80/]\n  · anthropic.com X Submit your offer to rent anthropic.com Please complete each field with your information Name Enter your name Email Enter email address Phone Enter phone number Offer amount (per month) and duration $ /month 50 Enter offer 3 months 6 months 12 months e.g. $ 100 /month for 12 months Further comments here --> --> Welcome to anthropic.com &copy; 2013 anthropic.com. All Rights Reserved. Contact Us Privacy [src: https://web.archive.org/web/20130719144242/http://www.anthropic.com:80/]"
+    }
+  },
+  "facts": [
+    {
+      "entity_id": "anthropic",
+      "layer": 8,
+      "subcategory": "Market & technology",
+      "source_type": "online_research",
+      "text": "*   [(Top)](https://en.wikipedia.org/wiki/Anthropic#). *   [8 See also](https://en.wikipedia.org/wiki/Anthropic#See_also). Number of employees 2,500 (2026)[[6]](https://en.wikipedia.org/wiki/Anthropic#cite_note-6). 2.   **[^](https://en.wikipedia.org/wiki/Anthropic#cite_ref-2)**Nellis, Stephen (May 9, 2023). 8.   **[^](https://en.wikipedia.org/wiki/Anthropic#cite_ref-8)**[\"Anthropic: Company Overview & News\"](https://www.forbes.com/companies/anthropic/). **[^](https://en.wikipedia.org/wiki/Anthr",
+      "source_url": "https://en.wikipedia.org/wiki/Anthropic",
+      "captured_at": "2026-04-27T11:13:59.483250+00:00",
+      "flag": "grey",
+      "confidence": 0.52,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "anthropic",
+      "layer": 8,
+      "subcategory": "Market & technology",
+      "source_type": "online_research",
+      "text": "Anthropic✓ ... We're an AI safety and research company that builds reliable, interpretable, and steerable AI systems. Talk to our AI assistant @claudeai on claude",
+      "source_url": "https://x.com/AnthropicAI",
+      "captured_at": "2026-04-27T11:13:59.485204+00:00",
+      "flag": "grey",
+      "confidence": 0.72,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "anthropic",
+      "layer": 8,
+      "subcategory": "Market & technology",
+      "source_type": "online_research",
+      "text": "[](https://www.youtube.com/@anthropic-ai). [](https://www.youtube.com/@anthropic-ai). [](https://www.youtube.com/@anthropic-ai). [](https://www.youtube.com/@anthropic-ai). [](https://www.youtube.com/@anthropic-ai). [](https://www.youtube.com/@anthropic-ai). ![Image 6](https://www.youtube.com/@anthropic-ai). [](https://www.youtube.com/@anthropic-ai). [](https://www.youtube.com/@anthropic-ai \"Share link\")- [x] Include playlist. ![Image 8](https://www.youtube.com/@anthropic-ai). [Play all](https://",
+      "source_url": "https://www.youtube.com/@anthropic-ai",
+      "captured_at": "2026-04-27T11:13:59.487176+00:00",
+      "flag": "grey",
+      "confidence": 0.32,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "anthropic",
+      "layer": 8,
+      "subcategory": "Market & technology",
+      "source_type": "online_research",
+      "text": "*   [Research](https://www.anthropic.com/research). *   [Claude's Constitution](https://www.anthropic.com/constitution). *   [Tutorials](https://claude.com/resources/tutorials). *   [About](https://www.anthropic.com/company). *   [Careers](https://www.anthropic.com/careers). *   [News](https://www.anthropic.com/news). *   [Claude](https://claude.com/product/overview). *   [Pricing](https://claude.com/pricing). *   [Opus](https://www.anthropic.com/claude/opus). *   [Sonnet](https://www.anthropic.",
+      "source_url": "https://www.anthropic.com/",
+      "captured_at": "2026-04-27T11:13:59.489483+00:00",
+      "flag": "grey",
+      "confidence": 0.52,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "anthropic",
+      "layer": 8,
+      "subcategory": "Market & technology",
+      "source_type": "online_research",
+      "text": "### [Finance](https://finance.yahoo.com/). * [My Portfolio](https://finance.yahoo.com/portfolios/). * [News](https://finance.yahoo.com/news/). + [Crypto](https://finance.yahoo.com/markets/crypto/). + [Tech](https://finance.yahoo.com/topic/tech/). + [More Topics](https://finance.yahoo.com/news/). * [Markets](https://finance.yahoo.com/markets/). + [Stocks](https://finance.yahoo.com/markets/stocks/). + [Crypto](https://finance.yahoo.com/markets/crypto/all/). - [Tech](https://finance.yahoo.com/marke",
+      "source_url": "https://finance.yahoo.com/quote/ANTH.PVT/",
+      "captured_at": "2026-04-27T11:13:59.491395+00:00",
+      "flag": "grey",
+      "confidence": 0.45,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "anthropic",
+      "layer": 8,
+      "subcategory": "Market & technology",
+      "source_type": "online_research",
+      "text": "[![Image 12: Anthropic and Amazon expand collaboration for up to 5 gigawatts of new compute](https://www.linkedin.com/company/anthropicresearch) Anthropic and Amazon expand collaboration for up to 5 gigawatts of new compute anthropic.com](https://www.linkedin.com/redir/redirect?url=https%3A%2F%2Fwww%2Eanthropic%2Ecom%2Fnews%2Fanthropic-amazon-compute&urlhash=udBE&trk=organization_guest_main-feed-card_feed-article-content). [Anthropic](https://www.linkedin.com/company/anthropicresearch?trk=organi",
+      "source_url": "https://www.linkedin.com/company/anthropicresearch",
+      "captured_at": "2026-04-27T11:13:59.492915+00:00",
+      "flag": "grey",
+      "confidence": 0.72,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "anthropic",
+      "layer": 8,
+      "subcategory": "Market & technology",
+      "source_type": "online_research",
+      "text": "Master MCP's three core primitives—tools, resources, and prompts—to connect Claude with external services](https://anthropic.skilljar.com/introduction-to-model-context-protocol \"Introduction to Model Context Protocol\")[![Image 9](https://anthropic.skilljar.com/static/skilljar-monorepo/statics/dist/img/transparent.d89746888da2.gif) AI Fluency for educators This course empowers faculty, instructional designers, and educational leaders to apply AI Fluency into their own teaching practice and instit",
+      "source_url": "https://anthropic.skilljar.com/",
+      "captured_at": "2026-04-27T11:13:59.493661+00:00",
+      "flag": "grey",
+      "confidence": 0.72,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "anthropic",
+      "layer": 6,
+      "subcategory": "Architecture of the solution",
+      "source_type": "online_research",
+      "text": "Anthropic Capital Fund, LP  (CIK 0001931731) filed D with SEC on 2024-01-04.",
+      "source_url": "https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D",
+      "captured_at": "2024-01-04T00:00:00+00:00",
+      "flag": "grey",
+      "confidence": 0.62,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "anthropic",
+      "layer": 6,
+      "subcategory": "Architecture of the solution",
+      "source_type": "online_research",
+      "text": "Hiive Anthropic Series VII a Series of Hiive Anthropic LLC  (CIK 0002065512) filed D with SEC on 2025-04-25.",
+      "source_url": "https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D",
+      "captured_at": "2025-04-25T00:00:00+00:00",
+      "flag": "grey",
+      "confidence": 0.72,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "anthropic",
+      "layer": 6,
+      "subcategory": "Architecture of the solution",
+      "source_type": "online_research",
+      "text": "Hiive Anthropic Series II a Series of Hiive Anthropic LLC  (CIK 0002019525) filed D with SEC on 2024-04-15.",
+      "source_url": "https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D",
+      "captured_at": "2024-04-15T00:00:00+00:00",
+      "flag": "grey",
+      "confidence": 0.72,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "anthropic",
+      "layer": 6,
+      "subcategory": "Architecture of the solution",
+      "source_type": "online_research",
+      "text": "Hiive Anthropic Series V a Series of Hiive Anthropic LLC  (CIK 0002026315) filed D with SEC on 2024-06-10.",
+      "source_url": "https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D",
+      "captured_at": "2024-06-10T00:00:00+00:00",
+      "flag": "grey",
+      "confidence": 0.62,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "anthropic",
+      "layer": 6,
+      "subcategory": "Architecture of the solution",
+      "source_type": "online_research",
+      "text": "Hiive Anthropic Series VI a Series of Hiive Anthropic LLC  (CIK 0002058941) filed D with SEC on 2025-03-05.",
+      "source_url": "https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D",
+      "captured_at": "2025-03-05T00:00:00+00:00",
+      "flag": "grey",
+      "confidence": 0.72,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "anthropic",
+      "layer": 6,
+      "subcategory": "Architecture of the solution",
+      "source_type": "online_research",
+      "text": "Anthropic Capital Fund, LP  (CIK 0001931731) filed D with SEC on 2023-01-09.",
+      "source_url": "https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D",
+      "captured_at": "2023-01-09T00:00:00+00:00",
+      "flag": "grey",
+      "confidence": 0.72,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "anthropic",
+      "layer": 6,
+      "subcategory": "Architecture of the solution",
+      "source_type": "online_research",
+      "text": "Anthropic Alternate Fund II, a series of MAV Alternate Investments, LP  (CIK 0002021090) filed D with SEC on 2024-09-13.",
+      "source_url": "https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D",
+      "captured_at": "2024-09-13T00:00:00+00:00",
+      "flag": "grey",
+      "confidence": 0.72,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "anthropic",
+      "layer": 6,
+      "subcategory": "Architecture of the solution",
+      "source_type": "online_research",
+      "text": "HII Anthropic-01, a Series of HII Anthropic, LLC  (CIK 0002118444) filed D with SEC on 2026-03-13.",
+      "source_url": "https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D",
+      "captured_at": "2026-03-13T00:00:00+00:00",
+      "flag": "grey",
+      "confidence": 0.72,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "anthropic",
+      "layer": 8,
+      "subcategory": "Policy & regulation",
+      "source_type": "online_research",
+      "text": "Anthropic Capital Fund, LP  (CIK 0001931731) filed D with SEC on 2025-01-02.",
+      "source_url": "https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D",
+      "captured_at": "2025-01-02T00:00:00+00:00",
+      "flag": "grey",
+      "confidence": 0.82,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "anthropic",
+      "layer": 6,
+      "subcategory": "Architecture of the solution",
+      "source_type": "online_research",
+      "text": "Anthropic Capital Fund, LP  (CIK 0001931731) filed D with SEC on 2025-12-18.",
+      "source_url": "https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=D",
+      "captured_at": "2025-12-18T00:00:00+00:00",
+      "flag": "grey",
+      "confidence": 0.62,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "anthropic",
+      "layer": 8,
+      "subcategory": "Historical moment",
+      "source_type": "archival",
+      "text": "anthropic.com X Submit your offer to rent anthropic.com Please complete each field with your information Name Enter your name Email Enter email address Phone Enter phone number Offer amount (per month) and duration $ /month 50 Enter offer 3 months 6 months 12 months e.g. $ 100 /month for 12 months Further comments here --> --> Welcome to anthropic.com &copy; 2013 anthropic.com. All Rights Reserved. Contact Us Privacy",
+      "source_url": "https://web.archive.org/web/20130522024254/http://anthropic.com/",
+      "captured_at": "2013-05-22T02:42:54+00:00",
+      "flag": "grey",
+      "confidence": 0.52,
+      "event_date": "2013-05-22",
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "anthropic",
+      "layer": 8,
+      "subcategory": "Historical moment",
+      "source_type": "archival",
+      "text": "anthropic.com X Submit your offer to rent anthropic.com Please complete each field with your information Name Enter your name Email Enter email address Phone Enter phone number Offer amount (per month) and duration $ /month 50 Enter offer 3 months 6 months 12 months e.g. $ 100 /month for 12 months Further comments here --> --> Welcome to anthropic.com &copy; 2013 anthropic.com. All Rights Reserved. Contact Us Privacy",
+      "source_url": "https://web.archive.org/web/20130615000326/http://www.anthropic.com:80/",
+      "captured_at": "2013-06-15T00:03:26+00:00",
+      "flag": "grey",
+      "confidence": 0.62,
+      "event_date": "2013-06-15",
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "anthropic",
+      "layer": 8,
+      "subcategory": "Historical moment",
+      "source_type": "archival",
+      "text": "anthropic.com X Submit your offer to rent anthropic.com Please complete each field with your information Name Enter your name Email Enter email address Phone Enter phone number Offer amount (per month) and duration $ /month 50 Enter offer 3 months 6 months 12 months e.g. $ 100 /month for 12 months Further comments here --> --> Welcome to anthropic.com &copy; 2013 anthropic.com. All Rights Reserved. Contact Us Privacy",
+      "source_url": "https://web.archive.org/web/20130719144242/http://www.anthropic.com:80/",
+      "captured_at": "2013-07-19T14:42:42+00:00",
+      "flag": "grey",
+      "confidence": 0.52,
+      "event_date": "2013-07-19",
+      "red_flag_category": null
+    }
+  ]
+}
