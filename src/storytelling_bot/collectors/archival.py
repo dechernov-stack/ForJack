@@ -5,14 +5,16 @@ import hashlib
 import json
 import logging
 import re
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import httpx
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 from storytelling_bot.collectors.base import DEMO_CORPUS
+from storytelling_bot.collectors.lake import upload_bronze as _minio_bronze
+from storytelling_bot.collectors.lake import upload_silver as _minio_silver
 from storytelling_bot.schema import SourceType
 
 log = logging.getLogger(__name__)
@@ -25,7 +27,7 @@ _CDX_URL = "https://web.archive.org/cdx/search/cdx"
 # Wayback content API — fetch snapshot text
 _WB_BASE = "https://web.archive.org/web"
 
-_MAX_SNAPSHOTS = int(10)  # per entity search
+_MAX_SNAPSHOTS = 10  # per entity search
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────
@@ -35,22 +37,24 @@ def _sha256(text: str) -> str:
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
-def _write_bronze(entity_id: str, sha: str, raw: Dict[str, Any]) -> bool:
+def _write_bronze(entity_id: str, sha: str, raw: dict[str, Any]) -> bool:
     path = _BRONZE_ROOT / entity_id / "wayback" / f"{sha}.json"
     if path.exists():
         return False
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(raw, ensure_ascii=False, indent=2), encoding="utf-8")
+    _minio_bronze(entity_id, "wayback", sha, raw)
     return True
 
 
-def _write_silver(entity_id: str, sha: str, record: Dict[str, Any]) -> None:
+def _write_silver(entity_id: str, sha: str, record: dict[str, Any]) -> None:
     path = _SILVER_ROOT / entity_id / "wayback" / f"{sha}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+    _minio_silver(entity_id, "wayback", sha, record)
 
 
 def _strip_html(html: str) -> str:
@@ -74,7 +78,7 @@ class _WaybackRateLimit(Exception):
     stop=stop_after_attempt(3),
     reraise=True,
 )
-def _cdx_search(url_prefix: str, from_year: str = "2010", to_year: str = "2024") -> List[Dict]:
+def _cdx_search(url_prefix: str, from_year: str = "2010", to_year: str = "2024") -> list[dict]:
     """Query CDX API for captures of url_prefix. Returns list of capture dicts."""
     params = {
         "url": url_prefix,
@@ -119,7 +123,7 @@ def _cdx_search(url_prefix: str, from_year: str = "2010", to_year: str = "2024")
     stop=stop_after_attempt(2),
     reraise=False,
 )
-def _fetch_snapshot_text(timestamp: str, original_url: str) -> Optional[str]:
+def _fetch_snapshot_text(timestamp: str, original_url: str) -> str | None:
     """Fetch Wayback snapshot and extract plain text (≤3000 chars)."""
     wb_url = f"{_WB_BASE}/{timestamp}if_/{original_url}"
     try:
@@ -142,7 +146,7 @@ def _fetch_snapshot_text(timestamp: str, original_url: str) -> Optional[str]:
 
 # ── entity → URL candidates ───────────────────────────────────────────────────
 
-def _build_url_candidates(entity_id: str) -> List[str]:
+def _build_url_candidates(entity_id: str) -> list[str]:
     """Generate URL prefixes to search in Wayback for a given entity."""
     name = entity_id.replace("-", "").lower()
     slug = entity_id.replace(" ", "-").lower()
@@ -156,9 +160,9 @@ def _build_url_candidates(entity_id: str) -> List[str]:
 
 # ── main collection ───────────────────────────────────────────────────────────
 
-def _collect_wayback(entity_id: str) -> List[Dict[str, Any]]:
+def _collect_wayback(entity_id: str) -> list[dict[str, Any]]:
     candidates = _build_url_candidates(entity_id)
-    results: List[Dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
 
     for url_pattern in candidates:
         try:
@@ -199,7 +203,7 @@ def _collect_wayback(entity_id: str) -> List[Dict[str, Any]]:
                 if len(ts) >= 14
                 else _now_iso()
             )
-            record: Dict[str, Any] = {
+            record: dict[str, Any] = {
                 "source_type": SourceType.ARCHIVAL,
                 "url": f"{_WB_BASE}/{ts}/{orig}",
                 "captured_at": captured_at,
@@ -221,7 +225,7 @@ def _collect_wayback(entity_id: str) -> List[Dict[str, Any]]:
 class ArchivalCollector:
     source_type = SourceType.ARCHIVAL
 
-    def collect(self, entity_id: str) -> List[Dict[str, Any]]:
+    def collect(self, entity_id: str) -> list[dict[str, Any]]:
         demo = DEMO_CORPUS.get(entity_id, [])
         demo_chunks = [c for c in demo if c["source_type"] == self.source_type]
         live = _collect_wayback(entity_id)

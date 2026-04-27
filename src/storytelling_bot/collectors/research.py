@@ -18,6 +18,8 @@ except ImportError:
     TavilyClient = None  # type: ignore[assignment,misc]
 
 from storytelling_bot.collectors.base import DEMO_CORPUS
+from storytelling_bot.collectors.lake import upload_bronze as _minio_bronze
+from storytelling_bot.collectors.lake import upload_silver as _minio_silver
 from storytelling_bot.schema import SourceType
 
 log = logging.getLogger(__name__)
@@ -44,6 +46,7 @@ def _write_bronze(entity_id: str, source: str, raw: dict[str, Any]) -> str | Non
         return None  # duplicate
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+    _minio_bronze(entity_id, source, sha, raw)
     return sha
 
 
@@ -51,6 +54,7 @@ def _write_silver(entity_id: str, source: str, sha: str, record: dict[str, Any])
     path = _SILVER_ROOT / entity_id / source / f"{sha}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+    _minio_silver(entity_id, source, sha, record)
 
 
 def _normalize(entity_id: str, source: str, url: str, text: str, captured_at: str) -> dict[str, Any]:

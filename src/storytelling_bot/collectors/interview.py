@@ -6,11 +6,13 @@ import json
 import logging
 import os
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from storytelling_bot.collectors.base import DEMO_CORPUS
+from storytelling_bot.collectors.lake import upload_bronze as _minio_bronze
+from storytelling_bot.collectors.lake import upload_silver as _minio_silver
 from storytelling_bot.schema import SourceType
 
 log = logging.getLogger(__name__)
@@ -32,30 +34,32 @@ def _sha256(text: str) -> str:
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
-def _write_bronze(entity_id: str, sha: str, raw: Dict[str, Any]) -> bool:
+def _write_bronze(entity_id: str, sha: str, raw: dict[str, Any]) -> bool:
     path = _BRONZE_ROOT / entity_id / "interview" / f"{sha}.json"
     if path.exists():
         return False
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(raw, ensure_ascii=False, indent=2), encoding="utf-8")
+    _minio_bronze(entity_id, "interview", sha, raw)
     return True
 
 
-def _write_silver(entity_id: str, sha: str, record: Dict[str, Any]) -> None:
+def _write_silver(entity_id: str, sha: str, record: dict[str, Any]) -> None:
     path = _SILVER_ROOT / entity_id / "interview" / f"{sha}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+    _minio_silver(entity_id, "interview", sha, record)
 
 
 # ── YouTube metadata & audio ──────────────────────────────────────────────────
 
-def _fetch_youtube_info(url: str) -> Optional[Dict[str, Any]]:
+def _fetch_youtube_info(url: str) -> dict[str, Any] | None:
     """Return yt-dlp info dict without downloading (flat extraction)."""
     try:
-        import yt_dlp  # noqa: PLC0415
+        import yt_dlp
         ydl_opts = {
             "quiet": True,
             "no_warnings": True,
@@ -69,10 +73,10 @@ def _fetch_youtube_info(url: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def _download_audio(url: str, out_dir: str) -> Optional[str]:
+def _download_audio(url: str, out_dir: str) -> str | None:
     """Download best audio to out_dir, return path to m4a/webm/opus file."""
     try:
-        import yt_dlp  # noqa: PLC0415
+        import yt_dlp
         ydl_opts = {
             "quiet": True,
             "no_warnings": True,
@@ -99,7 +103,7 @@ def _download_audio(url: str, out_dir: str) -> Optional[str]:
 
 def _transcribe(audio_path: str) -> str:
     """Transcribe audio file via faster-whisper (CPU). Returns full text."""
-    from faster_whisper import WhisperModel  # noqa: PLC0415
+    from faster_whisper import WhisperModel
     model = WhisperModel(_WHISPER_MODEL, device="cpu", compute_type="int8")
     segments, _ = model.transcribe(audio_path, beam_size=1)
     return " ".join(seg.text.strip() for seg in segments)
@@ -107,10 +111,10 @@ def _transcribe(audio_path: str) -> str:
 
 # ── YouTube search ────────────────────────────────────────────────────────────
 
-def _search_youtube_urls(entity_id: str, max_results: int = 5) -> List[str]:
+def _search_youtube_urls(entity_id: str, max_results: int = 5) -> list[str]:
     """Search YouTube for entity interviews. Returns list of video URLs."""
     try:
-        import yt_dlp  # noqa: PLC0415
+        import yt_dlp
         query = f"{entity_id.replace('-', ' ')} founder interview"
         ydl_opts = {
             "quiet": True,
@@ -133,7 +137,7 @@ def _search_youtube_urls(entity_id: str, max_results: int = 5) -> List[str]:
 
 # ── Chunk text into Fact-sized pieces ────────────────────────────────────────
 
-def _chunk_transcript(text: str, chunk_size: int = 500) -> List[str]:
+def _chunk_transcript(text: str, chunk_size: int = 500) -> list[str]:
     """Split long transcript into overlapping chunks (~500 chars each)."""
     words = text.split()
     if not words:
@@ -152,7 +156,7 @@ def _chunk_transcript(text: str, chunk_size: int = 500) -> List[str]:
 
 # ── Main collection logic ─────────────────────────────────────────────────────
 
-def _process_url(entity_id: str, url: str) -> List[Dict[str, Any]]:
+def _process_url(entity_id: str, url: str) -> list[dict[str, Any]]:
     """Fetch, transcribe, chunk one YouTube video. Returns Silver chunks."""
     info = _fetch_youtube_info(url)
     if not info:
@@ -214,7 +218,7 @@ def _process_url(entity_id: str, url: str) -> List[Dict[str, Any]]:
 class InterviewCollector:
     source_type = SourceType.ONLINE_INTERVIEW
 
-    def collect(self, entity_id: str) -> List[Dict[str, Any]]:
+    def collect(self, entity_id: str) -> list[dict[str, Any]]:
         # First return any demo corpus items (for known entities like accumulator)
         demo = DEMO_CORPUS.get(entity_id, [])
         demo_chunks = [c for c in demo if c["source_type"] == self.source_type]
@@ -224,7 +228,7 @@ class InterviewCollector:
 
         return demo_chunks + yt_chunks
 
-    def _collect_youtube(self, entity_id: str) -> List[Dict[str, Any]]:
+    def _collect_youtube(self, entity_id: str) -> list[dict[str, Any]]:
         urls = _search_youtube_urls(entity_id, max_results=3)
         if not urls:
             return []
