@@ -16,10 +16,13 @@ pip install -e ".[dev]"
 # 3. Copy and fill secrets
 cp .env.example .env   # set ANTHROPIC_API_KEY, TAVILY_API_KEY, etc.
 
-# 4. Run against a target
+# 4. Apply database migrations (first deploy or after schema changes)
+alembic upgrade head
+
+# 5. Run against a target
 storyteller run --entity stripe
 
-# 5. Run unit tests (fast, no external calls)
+# 6. Run unit tests (fast, no external calls)
 pytest --ignore=tests/test_faithfulness.py --ignore=tests/test_e2e.py
 ```
 

@@ -11,6 +11,18 @@ requires-python = ">=3.11"
 authors = [{ name = "Analyst team" }]
 license = { text = "Internal" }
 
+[project.dependencies]
+alembic = ">=1.13"
+sqlalchemy = ">=2.0"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "respx>=0.21",
+    "ruff>=0.6",
+]
+
 [project.scripts]
 storyteller = "storytelling_bot.__main__:main"
 

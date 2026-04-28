@@ -3,12 +3,9 @@ from __future__ import annotations
 
 import datetime as dt
 import json
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 from storytelling_bot.schema import Fact, Flag, Layer, SourceType
-
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -56,6 +53,10 @@ def test_postgres_store_save_and_load_facts():
                 created_at TEXT DEFAULT (datetime('now'))
             )
         """))
+        conn.execute(text(
+            "CREATE UNIQUE INDEX IF NOT EXISTS uq_facts_key "
+            "ON facts (entity_id, layer, subcategory, source_url)"
+        ))
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS decisions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -72,7 +73,20 @@ def test_postgres_store_save_and_load_facts():
         """))
         conn.commit()
 
-    facts = [_make_fact("Stripe processes trillions."), _make_fact("Stripe went public in 2021.")]
+    facts = [
+        _make_fact("Stripe processes trillions."),
+        Fact(
+            entity_id="stripe",
+            layer=Layer.PRODUCT_BUSINESS,
+            subcategory="Architecture of the solution",
+            source_type=SourceType.ONLINE_RESEARCH,
+            text="Stripe went public in 2021.",
+            source_url="https://example.com/2",
+            captured_at=dt.datetime.now(dt.UTC),
+            flag=Flag.GREEN,
+            confidence=0.9,
+        ),
+    ]
     store.save_facts(facts)
 
     loaded = store.load_facts("stripe")
@@ -81,8 +95,9 @@ def test_postgres_store_save_and_load_facts():
 
 
 def test_postgres_store_save_decision_sqlite():
-    from storytelling_bot.storage.postgres import PostgresStore
     from sqlalchemy import create_engine, text
+
+    from storytelling_bot.storage.postgres import PostgresStore
 
     store = PostgresStore(database_url="sqlite:///:memory:")
     engine = create_engine("sqlite:///:memory:")
@@ -214,8 +229,8 @@ def test_vector_store_upsert():
 
 
 def test_vector_store_search():
+
     from storytelling_bot.storage.vector_store import VectorStore
-    from qdrant_client.models import ScoredPoint
 
     mock_client = MagicMock()
     mock_hit = MagicMock()

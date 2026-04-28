@@ -1,4 +1,4 @@
-"""Reporter node — serialize Diamond layer to JSON."""
+"""Reporter node — serialize Diamond layer to JSON and persist to storage."""
 from __future__ import annotations
 
 import datetime as dt
@@ -24,4 +24,16 @@ def node_reporter(state: State) -> dict:
         with open(state.report_path, "w", encoding="utf-8") as fh:
             json.dump(payload, fh, ensure_ascii=False, indent=2)
         log.info("Report saved → %s", state.report_path)
+
+    _persist(state)
+
     return {"metrics": {**state.metrics, "_payload": payload}}
+
+
+def _persist(state: State) -> None:
+    """Write facts + decision atomically to Postgres; best-effort, never fails the pipeline."""
+    try:
+        from storytelling_bot.storage.postgres import PostgresStore
+        PostgresStore().persist_run(state.facts, state.entity_id, state.decision)
+    except Exception:
+        log.exception("PostgresStore persistence failed (pipeline continues)")
