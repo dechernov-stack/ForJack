@@ -4,15 +4,12 @@ from __future__ import annotations
 import datetime as dt
 import json
 import logging
-import sys
 import textwrap
 from pathlib import Path
-from typing import Optional
 
 import typer
 from dotenv import load_dotenv
 from rich.console import Console
-from rich.text import Text
 
 load_dotenv()
 
@@ -26,7 +23,6 @@ console = Console()
 
 
 def _render_summary(state) -> str:
-    from storytelling_bot.schema import LAYER_LABEL
     lines = [
         "=" * 78,
         f"STORYTELLING DATA LAKE — {state.entity_id.upper()}",
@@ -79,8 +75,8 @@ def _build_payload(state) -> dict:
 @app.command("run")
 def cmd_run(
     entity: str = typer.Option("accumulator", "--entity", "-e", help="Entity ID"),
-    output: Optional[Path] = typer.Option(None, "--output", "-o", help="JSON report path"),
-    export_html: Optional[Path] = typer.Option(None, "--export-html", help="HTML dashboard path"),
+    output: Path | None = typer.Option(None, "--output", "-o", help="JSON report path"),
+    export_html: Path | None = typer.Option(None, "--export-html", help="HTML dashboard path"),
     quiet: bool = typer.Option(False, "--quiet", "-q"),
 ) -> None:
     """Run full pipeline for an entity."""
@@ -170,6 +166,7 @@ def cmd_watch(
 ) -> None:
     """Watch mode — periodic re-run with alerts."""
     import time
+
     from storytelling_bot.graph import build_graph
     from storytelling_bot.schema import State
 
@@ -187,6 +184,43 @@ def cmd_watch(
         last = n
         if i < max_iter - 1:
             time.sleep(interval)
+
+
+@app.command("search")
+def cmd_search(
+    entity: str = typer.Option(..., "--entity", "-e", help="Entity ID to search within"),
+    query: str = typer.Option(..., "--query", "-q", help="Semantic search query"),
+    top: int = typer.Option(5, "--top", help="Number of results"),
+) -> None:
+    """Semantic search over indexed facts for an entity."""
+    from storytelling_bot.llm import get_llm_client
+    from storytelling_bot.storage.vector_store import VectorStore
+
+    llm = get_llm_client()
+    vs = VectorStore()
+
+    try:
+        vectors = llm.embed([query])
+    except Exception as exc:
+        console.print(f"[red]Embed failed: {exc}[/red]")
+        raise typer.Exit(1)
+
+    results = vs.search_with_filter(vectors[0], entity_id=entity, limit=top, min_score=0.0)
+
+    if not results:
+        console.print(f"[yellow]No facts found for '{entity}' matching '{query}'[/yellow]")
+        return
+
+    console.print(f"\n[bold]Top {len(results)} facts for '{entity}' — query: '{query}'[/bold]\n")
+    for i, r in enumerate(results, 1):
+        score = r.get("_score", 0)
+        flag = r.get("flag", "?")
+        text = r.get("text", "")[:120]
+        url = r.get("source_url", "")
+        layer = r.get("layer", "?")
+        console.print(f"  {i}. [score={score:.3f}] [layer={layer}] [{flag}]")
+        console.print(f"     {text}")
+        console.print(f"     {url}\n")
 
 
 @app.command("export-html")

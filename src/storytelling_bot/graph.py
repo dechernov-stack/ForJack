@@ -2,12 +2,18 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from langgraph.graph import END, StateGraph
 
-from storytelling_bot.collectors import ArchivalCollector, InterviewCollector, OfflineIngest, ResearchCollector
+from storytelling_bot.collectors import (
+    ArchivalCollector,
+    InterviewCollector,
+    OfflineIngest,
+    ResearchCollector,
+)
 from storytelling_bot.nodes import (
+    embed_facts,
     node_decision_engine,
     node_flag_detector,
     node_layer_classifier,
@@ -21,7 +27,7 @@ from storytelling_bot.schema import State
 log = logging.getLogger(__name__)
 
 
-def _collect_all(state: State) -> Dict[str, Any]:
+def _collect_all(state: State) -> dict[str, Any]:
     collectors = [
         InterviewCollector(),
         ResearchCollector(),
@@ -57,6 +63,7 @@ def build_graph() -> GraphWrapper:
     g.add_node("collect", _collect_all)
     g.add_node("classify", node_layer_classifier)
     g.add_node("flag", node_flag_detector)
+    g.add_node("embed", embed_facts)
     g.add_node("timeline", node_timeline_builder)
     g.add_node("synthesize", node_story_synthesizer)
     g.add_node("decide", node_decision_engine)
@@ -66,7 +73,8 @@ def build_graph() -> GraphWrapper:
     g.set_entry_point("collect")
     g.add_edge("collect", "classify")
     g.add_edge("classify", "flag")
-    g.add_edge("flag", "timeline")
+    g.add_edge("flag", "embed")
+    g.add_edge("embed", "timeline")
     g.add_edge("timeline", "synthesize")
     g.add_edge("synthesize", "decide")
     g.add_edge("decide", "metrics")

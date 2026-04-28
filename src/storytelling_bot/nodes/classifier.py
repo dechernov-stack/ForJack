@@ -6,13 +6,17 @@ import logging
 
 from storytelling_bot.llm import get_llm_client
 from storytelling_bot.schema import Fact, SourceType, State
+from storytelling_bot.storage.vector_store import VectorStore
 
 log = logging.getLogger(__name__)
+
+_DEDUP_COSINE_THRESHOLD = 0.92
 
 
 def node_layer_classifier(state: State) -> dict:
     llm = get_llm_client()
     facts: list[Fact] = []
+    skipped = 0
     for chunk in state.raw_chunks:
         layer, sub, conf = llm.classify_fact(chunk["text"])
         event_date = None
@@ -27,6 +31,11 @@ def node_layer_classifier(state: State) -> dict:
                 captured_at = dt.datetime.fromisoformat(captured_at + "T00:00:00")
             else:
                 captured_at = dt.datetime.fromisoformat(captured_at)
+
+        if _is_near_duplicate(chunk["text"], state.entity_id, llm):
+            skipped += 1
+            continue
+
         facts.append(Fact(
             entity_id=chunk.get("entity_focus", state.entity_id),
             layer=layer,
@@ -38,5 +47,22 @@ def node_layer_classifier(state: State) -> dict:
             confidence=conf,
             event_date=event_date,
         ))
-    log.info("Classified %d facts across %d layers", len(facts), len({f.layer for f in facts}))
+
+    log.info(
+        "Classified %d facts across %d layers (%d near-duplicates skipped)",
+        len(facts), len({f.layer for f in facts}), skipped,
+    )
     return {"facts": facts}
+
+
+def _is_near_duplicate(text: str, entity_id: str, llm) -> bool:
+    """Check Qdrant for semantically similar facts from previous runs."""
+    try:
+        vs = VectorStore()
+        vectors = llm.embed([text])
+        results = vs.search_with_filter(
+            vectors[0], entity_id=entity_id, limit=5, min_score=_DEDUP_COSINE_THRESHOLD
+        )
+        return len(results) > 0
+    except Exception:
+        return False

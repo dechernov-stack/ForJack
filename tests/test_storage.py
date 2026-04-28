@@ -218,7 +218,7 @@ def test_vector_store_upsert():
     store._client = mock_client
 
     fact_dict = {"entity_id": "stripe", "text": "Stripe processes payments.", "flag": "green"}
-    vector = [0.1] * 1536
+    vector = [0.1] * 1024
     store.upsert_fact(fact_dict, vector)
 
     mock_client.upsert.assert_called_once()

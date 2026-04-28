@@ -5,9 +5,8 @@ import json
 import logging
 import os
 import re
-from typing import Optional, Tuple
 
-from storytelling_bot.schema import Fact, Flag, Layer, SUBCATEGORIES
+from storytelling_bot.schema import SUBCATEGORIES, Fact, Layer
 
 log = logging.getLogger(__name__)
 
@@ -210,7 +209,7 @@ class AnthropicClient:
 
         return result
 
-    def classify_fact(self, text: str) -> Tuple[Layer, str, float]:
+    def classify_fact(self, text: str) -> tuple[Layer, str, float]:
         raw = self._call(_CLASSIFY_SYSTEM, f'Classify this text:\n"{text}"', "classify_fact")
         try:
             # Strip markdown fences if present
@@ -238,7 +237,7 @@ class AnthropicClient:
         prompt = f"Layer: {LAYER_LABEL[layer]}\n\nFacts:\n{facts_text}\n\nSynthesize a narrative paragraph."
         return self._call(_SYNTHESIZE_SYSTEM, prompt, "synthesize_layer", max_tokens=512)
 
-    def judge_red_flag(self, text: str) -> Optional[Tuple[str, float]]:
+    def judge_red_flag(self, text: str) -> tuple[str, float] | None:
         raw = self._call(_JUDGE_SYSTEM, f'Evaluate for red flags:\n"{text}"', "judge_red_flag")
         if raw.strip().lower() in ("null", "none", "{}"):
             return None
@@ -262,3 +261,16 @@ class AnthropicClient:
         # Use mock heuristic for green classification (less critical path)
         from storytelling_bot.llm.mock import MockClient
         return MockClient().classify_green(text)
+
+    def embed(self, texts: list[str]) -> list[list[float]]:
+        voyage_key = os.environ.get("VOYAGE_API_KEY")
+        if voyage_key:
+            try:
+                import voyageai
+                vc = voyageai.Client(api_key=voyage_key)
+                result = vc.embed(texts, model="voyage-3", input_type="document")
+                return result.embeddings
+            except Exception as e:
+                log.warning("voyage-ai embed failed: %s — using hash fallback", e)
+        from storytelling_bot.llm.mock import MockClient
+        return MockClient().embed(texts)

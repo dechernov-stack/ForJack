@@ -1,9 +1,7 @@
 """MockClient — deterministic keyword heuristics (no real LLM calls)."""
 from __future__ import annotations
 
-from typing import Optional, Tuple
-
-from storytelling_bot.schema import Fact, Flag, Layer, SUBCATEGORIES
+from storytelling_bot.schema import SUBCATEGORIES, Fact, Layer
 
 _LAYER_KEYWORDS = {
     Layer.FOUNDER_PERSONAL: ["детств", "семь", "родил", "ценност", "страх", "мечт", "вера", "переломн", "the turning point"],
@@ -58,7 +56,7 @@ _GREEN_SIGNALS = [
 
 
 class MockClient:
-    def classify_fact(self, text: str) -> Tuple[Layer, str, float]:
+    def classify_fact(self, text: str) -> tuple[Layer, str, float]:
         t = text.lower()
         best_layer, best_score = Layer.PRODUCT_BUSINESS, 0
         for layer, keys in _LAYER_KEYWORDS.items():
@@ -80,7 +78,7 @@ class MockClient:
         parts = [f"  · {f.text} [src: {f.source_url}]" for f in facts]
         return f"{LAYER_LABEL[layer]}:\n" + "\n".join(parts) if parts else "(нет данных)"
 
-    def judge_red_flag(self, text: str) -> Optional[Tuple[str, float]]:
+    def judge_red_flag(self, text: str) -> tuple[str, float] | None:
         t = text.lower()
         for cat, kws in _HARD_KEYWORDS.items():
             if any(k in t for k in kws):
@@ -93,3 +91,14 @@ class MockClient:
     def classify_green(self, text: str) -> bool:
         t = text.lower()
         return any(s in t for s in _GREEN_SIGNALS)
+
+    def embed(self, texts: list[str]) -> list[list[float]]:
+        import hashlib
+        import math
+        vectors = []
+        for text in texts:
+            h = int(hashlib.sha256(text.encode()).hexdigest(), 16)
+            v = [((h >> (i % 256)) & 0xFF) / 255.0 - 0.5 for i in range(1024)]
+            mag = math.sqrt(sum(x * x for x in v)) or 1.0
+            vectors.append([x / mag for x in v])
+        return vectors
