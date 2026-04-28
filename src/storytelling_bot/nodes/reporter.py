@@ -33,7 +33,12 @@ def node_reporter(state: State) -> dict:
 def _persist(state: State) -> None:
     """Write facts + decision atomically to Postgres; best-effort, never fails the pipeline."""
     try:
+        from storytelling_bot import langfuse_ctx
         from storytelling_bot.storage.postgres import PostgresStore
-        PostgresStore().persist_run(state.facts, state.entity_id, state.decision)
+        with langfuse_ctx.span(
+            "storage.postgres.upsert_facts",
+            input_data={"entity_id": state.entity_id, "fact_count": len(state.facts)},
+        ):
+            PostgresStore().persist_run(state.facts, state.entity_id, state.decision)
     except Exception:
         log.exception("PostgresStore persistence failed (pipeline continues)")

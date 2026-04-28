@@ -91,5 +91,6 @@ class State(BaseModel):
     report_path: str | None = None
     metrics: dict[str, Any] = Field(default_factory=dict)
     errors: list[str] = Field(default_factory=list)
+    langfuse_trace_id: str | None = None
 
     model_config = {"arbitrary_types_allowed": True}

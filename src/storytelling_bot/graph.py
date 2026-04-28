@@ -49,7 +49,11 @@ class GraphWrapper:
         self._compiled = compiled
 
     def run(self, state: State) -> State:
-        result = self._compiled.invoke(state)
+        from storytelling_bot import langfuse_ctx
+        with langfuse_ctx.trace("pipeline_run", state.entity_id) as lf_trace:
+            if lf_trace:
+                state = state.model_copy(update={"langfuse_trace_id": lf_trace.id})
+            result = self._compiled.invoke(state)
         if isinstance(result, State):
             return result
         if isinstance(result, dict):

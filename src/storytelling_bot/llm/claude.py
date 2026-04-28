@@ -151,25 +151,10 @@ Rules:
 No explanation. No markdown."""
 
 
-def _get_langfuse():
-    if not os.environ.get("LANGFUSE_PUBLIC_KEY"):
-        return None
-    try:
-        from langfuse import Langfuse
-        return Langfuse(
-            public_key=os.environ["LANGFUSE_PUBLIC_KEY"],
-            secret_key=os.environ.get("LANGFUSE_SECRET_KEY", ""),
-            host=os.environ.get("LANGFUSE_HOST", "https://cloud.langfuse.com"),
-        )
-    except Exception:
-        return None
-
-
 class AnthropicClient:
     def __init__(self) -> None:
         self._model = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-6")
         self._client = None
-        self._lf = _get_langfuse()
 
     def _anthropic(self):
         if self._client is None:
@@ -178,13 +163,10 @@ class AnthropicClient:
         return self._client
 
     def _call(self, system: str, user: str, trace_name: str, max_tokens: int = 256) -> str:
-        """Make an API call, optionally tracing with Langfuse."""
-        trace = None
-        if self._lf:
-            try:
-                trace = self._lf.trace(name=trace_name, input={"user": user[:200]})
-            except Exception:
-                pass
+        """Make an API call, recording a Langfuse generation under the current trace."""
+        from storytelling_bot import langfuse_ctx
+        lf = langfuse_ctx.get_langfuse()
+        trace_id = langfuse_ctx.get_trace_id()
 
         client = self._anthropic()
         resp = client.messages.create(
@@ -195,14 +177,18 @@ class AnthropicClient:
         )
         result = resp.content[0].text.strip()
 
-        if trace:
+        if lf:
             try:
-                trace.generation(
+                parent = lf.trace(id=trace_id) if trace_id else lf.trace(name=trace_name)
+                parent.generation(
                     name=trace_name,
                     model=self._model,
                     input=user[:500],
                     output=result,
-                    usage={"input_tokens": resp.usage.input_tokens, "output_tokens": resp.usage.output_tokens},
+                    usage={
+                        "input_tokens": resp.usage.input_tokens,
+                        "output_tokens": resp.usage.output_tokens,
+                    },
                 )
             except Exception:
                 pass
@@ -210,7 +196,9 @@ class AnthropicClient:
         return result
 
     def classify_fact(self, text: str) -> tuple[Layer, str, float]:
-        raw = self._call(_CLASSIFY_SYSTEM, f'Classify this text:\n"{text}"', "classify_fact")
+        from storytelling_bot import langfuse_ctx
+        system = langfuse_ctx.get_prompt("classify_fact", _CLASSIFY_SYSTEM)
+        raw = self._call(system, f'Classify this text:\n"{text}"', "classify_fact")
         try:
             # Strip markdown fences if present
             clean = re.sub(r"```[a-z]*\n?", "", raw).strip().rstrip("`").strip()
@@ -232,13 +220,17 @@ class AnthropicClient:
     def synthesize_layer(self, layer: Layer, facts: list[Fact]) -> str:
         if not facts:
             return "(нет данных)"
-        facts_text = "\n".join(f"- [{f.flag.value}] {f.text} [src: {f.source_url}]" for f in facts)
+        from storytelling_bot import langfuse_ctx
         from storytelling_bot.schema import LAYER_LABEL
+        system = langfuse_ctx.get_prompt("synthesize_layer", _SYNTHESIZE_SYSTEM)
+        facts_text = "\n".join(f"- [{f.flag.value}] {f.text} [src: {f.source_url}]" for f in facts)
         prompt = f"Layer: {LAYER_LABEL[layer]}\n\nFacts:\n{facts_text}\n\nSynthesize a narrative paragraph."
-        return self._call(_SYNTHESIZE_SYSTEM, prompt, "synthesize_layer", max_tokens=512)
+        return self._call(system, prompt, "synthesize_layer", max_tokens=512)
 
     def judge_red_flag(self, text: str) -> tuple[str, float] | None:
-        raw = self._call(_JUDGE_SYSTEM, f'Evaluate for red flags:\n"{text}"', "judge_red_flag")
+        from storytelling_bot import langfuse_ctx
+        system = langfuse_ctx.get_prompt("judge_red_flag", _JUDGE_SYSTEM)
+        raw = self._call(system, f'Evaluate for red flags:\n"{text}"', "judge_red_flag")
         if raw.strip().lower() in ("null", "none", "{}"):
             return None
         try:

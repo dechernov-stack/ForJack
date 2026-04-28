@@ -128,22 +128,24 @@ def _collect_tavily(entity_id: str) -> list[dict[str, Any]]:
     chunks = []
     seen_urls: set[str] = set()
 
-    for q in queries:
-        for item in _tavily_search(client, q):
-            url = item.get("url", "")
-            content = (item.get("content") or item.get("raw_content") or "").strip()
-            if not content or url in seen_urls:
-                continue
-            seen_urls.add(url)
+    from storytelling_bot import langfuse_ctx
+    with langfuse_ctx.span("collector.research.tavily", input_data={"entity_id": entity_id, "queries": queries}):
+        for q in queries:
+            for item in _tavily_search(client, q):
+                url = item.get("url", "")
+                content = (item.get("content") or item.get("raw_content") or "").strip()
+                if not content or url in seen_urls:
+                    continue
+                seen_urls.add(url)
 
-            raw = {"source": "tavily", "query": q, "url": url, "content": content}
-            sha = _write_bronze(entity_id, "tavily", raw)
-            if sha is None:
-                continue  # duplicate
+                raw = {"source": "tavily", "query": q, "url": url, "content": content}
+                sha = _write_bronze(entity_id, "tavily", raw)
+                if sha is None:
+                    continue  # duplicate
 
-            record = _normalize(entity_id, "tavily", url, content, _now_iso())
-            _write_silver(entity_id, "tavily", sha, record)
-            chunks.append(record)
+                record = _normalize(entity_id, "tavily", url, content, _now_iso())
+                _write_silver(entity_id, "tavily", sha, record)
+                chunks.append(record)
 
     log.info("Tavily collected %d chunks for %s", len(chunks), entity_id)
     return chunks
@@ -152,6 +154,7 @@ def _collect_tavily(entity_id: str) -> list[dict[str, Any]]:
 # ── GDELT ────────────────────────────────────────────────────────────────────
 
 def _collect_gdelt(entity_id: str) -> list[dict[str, Any]]:
+    from storytelling_bot import langfuse_ctx
     name = entity_id.replace("-", " ")
     end = datetime.now(UTC)
     start = end - timedelta(days=30)
@@ -167,37 +170,38 @@ def _collect_gdelt(entity_id: str) -> list[dict[str, Any]]:
         "format": "json",
     }
 
-    try:
-        resp = httpx.get(url, params=params, timeout=20)
-        if resp.status_code != 200:
-            log.warning("GDELT returned %d for %s", resp.status_code, entity_id)
+    with langfuse_ctx.span("collector.research.gdelt", input_data={"entity_id": entity_id, "query": query}):
+        try:
+            resp = httpx.get(url, params=params, timeout=20)
+            if resp.status_code != 200:
+                log.warning("GDELT returned %d for %s", resp.status_code, entity_id)
+                return []
+            data = resp.json()
+        except Exception as e:
+            log.warning("GDELT fetch failed for %s: %s", entity_id, e)
             return []
-        data = resp.json()
-    except Exception as e:
-        log.warning("GDELT fetch failed for %s: %s", entity_id, e)
-        return []
 
-    articles = data.get("articles") or []
-    chunks = []
+        articles = data.get("articles") or []
+        chunks = []
 
-    for art in articles:
-        art_url = art.get("url", "")
-        title = (art.get("title") or "").strip()
-        if not title or not art_url:
-            continue
+        for art in articles:
+            art_url = art.get("url", "")
+            title = (art.get("title") or "").strip()
+            if not title or not art_url:
+                continue
 
-        tone = art.get("tone", "")
-        seendate = art.get("seendate", "")
-        text = f"{title}. [tone={tone}, date={seendate}]"
+            tone = art.get("tone", "")
+            seendate = art.get("seendate", "")
+            text = f"{title}. [tone={tone}, date={seendate}]"
 
-        raw = {"source": "gdelt", "url": art_url, "title": title, "tone": tone, "seendate": seendate}
-        sha = _write_bronze(entity_id, "gdelt", raw)
-        if sha is None:
-            continue
+            raw = {"source": "gdelt", "url": art_url, "title": title, "tone": tone, "seendate": seendate}
+            sha = _write_bronze(entity_id, "gdelt", raw)
+            if sha is None:
+                continue
 
-        record = _normalize(entity_id, "gdelt", art_url, text, _now_iso())
-        _write_silver(entity_id, "gdelt", sha, record)
-        chunks.append(record)
+            record = _normalize(entity_id, "gdelt", art_url, text, _now_iso())
+            _write_silver(entity_id, "gdelt", sha, record)
+            chunks.append(record)
 
     log.info("GDELT collected %d chunks for %s", len(chunks), entity_id)
     return chunks
