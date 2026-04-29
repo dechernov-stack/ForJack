@@ -127,6 +127,19 @@ CRITICAL RULES — violations are unacceptable:
 5. Keep the narrative concise (2-3 sentences max). Just report, do not interpret.
 6. Respond in the same language as the facts."""
 
+_GREEN_SYSTEM = """You are a due diligence analyst assessing positive signals about a founder or company.
+
+A "green" (positive) signal indicates ONE OR MORE of:
+- Strong regulatory compliance, clean legal history
+- Established track record: $500M+ raised, Fortune 500 clients, 10+ years of operation
+- Transparent governance, audited financials, credible board
+- Consistent leadership and team retention
+- Credible external validation (awards, tier-1 press, notable investors)
+
+Return ONLY the single word: true   (if green signal present)
+                         or: false  (if no positive signal, or insufficient evidence)
+No explanation. No punctuation. Just true or false."""
+
 _JUDGE_SYSTEM = """You are a risk analyst evaluating text for red flags in founder/company due diligence.
 
 Hard flags (high certainty, rule-based triggers):
@@ -250,9 +263,10 @@ class AnthropicClient:
             return None
 
     def classify_green(self, text: str) -> bool:
-        # Use mock heuristic for green classification (less critical path)
-        from storytelling_bot.llm.mock import MockClient
-        return MockClient().classify_green(text)
+        from storytelling_bot import langfuse_ctx
+        system = langfuse_ctx.get_prompt("classify_green", _GREEN_SYSTEM)
+        raw = self._call(system, f'Is this a positive/green signal?\n"{text}"', "classify_green", max_tokens=10)
+        return raw.strip().lower().startswith("true")
 
     def embed(self, texts: list[str]) -> list[list[float]]:
         voyage_key = os.environ.get("VOYAGE_API_KEY")
