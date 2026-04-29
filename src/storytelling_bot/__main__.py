@@ -111,10 +111,32 @@ def cmd_run(
 
 
 @app.command("list")
-def cmd_list() -> None:
+def cmd_list(
+    watchlist: bool = typer.Option(False, "--watchlist", help="Read from data/watchlist.json"),
+) -> None:
     """List entities in watchlist."""
+    import os
+
+    wl_path = Path(os.environ.get("WATCHLIST_PATH", "data/watchlist.json"))
+
+    if watchlist or wl_path.exists():
+        if wl_path.exists():
+            data = json.loads(wl_path.read_text(encoding="utf-8"))
+            entities = data.get("entities", [])
+            console.print(f"[bold]Watchlist[/bold] ({wl_path}, {len(entities)} entities):")
+            for e in entities:
+                kind = e.get("kind", "company")
+                name = e.get("display_name", e["id"])
+                added = e.get("added_at", "?")
+                notes = e.get("notes", "")
+                console.print(f"  · [cyan]{e['id']}[/cyan]  [{kind}]  {name}  (added {added})")
+                if notes:
+                    console.print(f"      {notes}")
+            return
+        console.print(f"[yellow]Watchlist file not found: {wl_path}[/yellow]")
+
     from storytelling_bot.collectors.base import DEMO_CORPUS
-    console.print("Сущности в watchlist:")
+    console.print("Сущности в demo corpus:")
     for ent, chunks in DEMO_CORPUS.items():
         console.print(f"  · {ent}  ({len(chunks)} сырых фрагментов)")
 

@@ -16,8 +16,9 @@ venv/
 .env.*.local
 secrets/
 
-# Data
-data/
+# Data — raw corpora ignored; config files tracked
+data/*
+!data/watchlist.json
 reports/*.json
 reports/*.html
 *.sqlite

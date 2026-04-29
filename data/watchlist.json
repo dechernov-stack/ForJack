@@ -1,0 +1,25 @@
+{
+  "entities": [
+    {
+      "id": "stripe",
+      "kind": "company",
+      "display_name": "Stripe, Inc.",
+      "added_at": "2026-04-28",
+      "notes": "Leading fintech — benchmark for green signals"
+    },
+    {
+      "id": "anthropic",
+      "kind": "company",
+      "display_name": "Anthropic, PBC",
+      "added_at": "2026-04-28",
+      "notes": "AI safety company — secondary benchmark"
+    },
+    {
+      "id": "theranos",
+      "kind": "company",
+      "display_name": "Theranos, Inc.",
+      "added_at": "2026-04-28",
+      "notes": "Regression target — must always return TERMINATE with ≥2 hard red flags"
+    }
+  ]
+}
