@@ -1,11 +1,10 @@
 """MinIO store — Bronze/Silver JSON files backed by S3-compatible object storage."""
 from __future__ import annotations
 
-import io
 import json
 import logging
 import os
-from typing import Any, Dict, Optional
+from typing import Any
 
 log = logging.getLogger(__name__)
 
@@ -18,9 +17,9 @@ class MinIOStore:
 
     def __init__(
         self,
-        endpoint_url: Optional[str] = None,
-        access_key: Optional[str] = None,
-        secret_key: Optional[str] = None,
+        endpoint_url: str | None = None,
+        access_key: str | None = None,
+        secret_key: str | None = None,
     ) -> None:
         self._endpoint = endpoint_url or os.environ.get("MINIO_ENDPOINT", "http://localhost:9000")
         self._access = access_key or os.environ.get("MINIO_ACCESS_KEY", "minioadmin")
@@ -29,7 +28,7 @@ class MinIOStore:
 
     def _get_client(self):
         if self._client is None:
-            import boto3  # noqa: PLC0415
+            import boto3
             self._client = boto3.client(
                 "s3",
                 endpoint_url=self._endpoint,
@@ -48,7 +47,7 @@ class MinIOStore:
                         log.warning("MinIOStore: could not create bucket %s: %s", bucket, e)
         return self._client
 
-    def upload_bronze(self, entity_id: str, source: str, sha: str, data: Dict[str, Any]) -> str:
+    def upload_bronze(self, entity_id: str, source: str, sha: str, data: dict[str, Any]) -> str:
         """Upload raw Bronze record. Returns object key."""
         key = f"{entity_id}/{source}/{sha}.json"
         body = json.dumps(data, ensure_ascii=False).encode()
@@ -60,7 +59,7 @@ class MinIOStore:
         )
         return key
 
-    def upload_silver(self, entity_id: str, source: str, sha: str, record: Dict[str, Any]) -> str:
+    def upload_silver(self, entity_id: str, source: str, sha: str, record: dict[str, Any]) -> str:
         """Upload normalized Silver record. Returns object key."""
         key = f"{entity_id}/{source}/{sha}.json"
         body = json.dumps(record, ensure_ascii=False, indent=2).encode()
@@ -72,7 +71,7 @@ class MinIOStore:
         )
         return key
 
-    def download_silver(self, key: str) -> Optional[Dict[str, Any]]:
+    def download_silver(self, key: str) -> dict[str, Any] | None:
         """Download a Silver record by key."""
         try:
             resp = self._get_client().get_object(Bucket=_BUCKET_SILVER, Key=key)

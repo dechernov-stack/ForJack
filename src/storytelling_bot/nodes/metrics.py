@@ -3,16 +3,15 @@ from __future__ import annotations
 
 import datetime as dt
 import logging
-from typing import List, Optional
 
-from storytelling_bot.schema import Flag, SUBCATEGORIES, State
+from storytelling_bot.schema import SUBCATEGORIES, Flag, State
 
 log = logging.getLogger(__name__)
 
 _TOTAL_SUBCATS = sum(len(v) for v in SUBCATEGORIES.values())
 
 
-def _median(xs: List[float]) -> Optional[float]:
+def _median(xs: list[float]) -> float | None:
     if not xs:
         return None
     s = sorted(xs)
@@ -24,7 +23,7 @@ def node_metrics(state: State) -> dict:
     covered = len({(f.layer, f.subcategory) for f in state.facts})
     now = dt.datetime.now(dt.UTC)
     freshness = [
-        (now - (f.captured_at if f.captured_at.tzinfo else f.captured_at.replace(tzinfo=dt.timezone.utc))).days
+        (now - (f.captured_at if f.captured_at.tzinfo else f.captured_at.replace(tzinfo=dt.UTC))).days
         for f in state.facts
     ]
     metrics = {

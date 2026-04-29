@@ -1,11 +1,11 @@
 """Collector Protocol + canonical demo corpus."""
 from __future__ import annotations
 
-from typing import Any, Dict, List, Protocol
+from typing import Any, Protocol
 
-from storytelling_bot.schema import SourceType, State
+from storytelling_bot.schema import SourceType
 
-DEMO_CORPUS: Dict[str, List[Dict[str, Any]]] = {
+DEMO_CORPUS: dict[str, list[dict[str, Any]]] = {
     "accumulator": [
         {
             "source_type": SourceType.ONLINE_INTERVIEW,
@@ -79,4 +79,4 @@ DEMO_CORPUS: Dict[str, List[Dict[str, Any]]] = {
 class Collector(Protocol):
     source_type: SourceType
 
-    def collect(self, entity_id: str) -> List[Dict[str, Any]]: ...
+    def collect(self, entity_id: str) -> list[dict[str, Any]]: ...

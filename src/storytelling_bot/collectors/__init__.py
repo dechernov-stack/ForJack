@@ -5,7 +5,10 @@ from storytelling_bot.collectors.offline import OfflineIngest
 from storytelling_bot.collectors.research import ResearchCollector
 
 __all__ = [
-    "Collector", "DEMO_CORPUS",
-    "InterviewCollector", "ResearchCollector",
-    "ArchivalCollector", "OfflineIngest",
+    "DEMO_CORPUS",
+    "ArchivalCollector",
+    "Collector",
+    "InterviewCollector",
+    "OfflineIngest",
+    "ResearchCollector",
 ]

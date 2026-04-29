@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict
+from typing import Any
 
 _TEMPLATE = r"""<!doctype html>
 <html lang="ru">
@@ -206,7 +206,7 @@ renderStory(); renderTimeline(); renderFacts();
 </body></html>"""
 
 
-def render_html(payload: Dict[str, Any], entity_id: str) -> str:
+def render_html(payload: dict[str, Any], entity_id: str) -> str:
     decision = payload["decision"].get("recommendation", "watch")
     rationale = payload["decision"].get("rationale", "").replace('"', "&quot;")
     m = payload["metrics"]
@@ -227,7 +227,7 @@ def render_html(payload: Dict[str, Any], entity_id: str) -> str:
     )
 
 
-def export_html(payload: Dict[str, Any], entity_id: str, out_path: str) -> None:
+def export_html(payload: dict[str, Any], entity_id: str, out_path: str) -> None:
     import logging
     html = render_html(payload, entity_id)
     with open(out_path, "w", encoding="utf-8") as fh:

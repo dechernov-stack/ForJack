@@ -28,9 +28,10 @@ def _claim_covered(claim: str, fact_texts: list[str]) -> bool:
 
 def test_synthesizer_faithfulness():
     """All claims in synthesis must be grounded in provided facts."""
+    import datetime as dt
+
     from storytelling_bot.llm.claude import AnthropicClient
     from storytelling_bot.schema import Fact, Flag, Layer, SourceType
-    import datetime as dt
 
     client = AnthropicClient()
     sample_facts = [

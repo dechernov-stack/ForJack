@@ -3,8 +3,6 @@ from __future__ import annotations
 
 import datetime as dt
 
-import pytest
-
 from storytelling_bot.nodes.decision_engine import node_decision_engine
 from storytelling_bot.schema import Fact, Flag, Layer, SourceType, State
 

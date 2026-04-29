@@ -2,17 +2,16 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Dict, Tuple
 
 from storytelling_bot.schema import LAYER_LABEL, Flag, Layer, State
 
 
 def node_story_synthesizer(state: State) -> dict:
-    by_key: Dict[Tuple[Layer, str], list] = defaultdict(list)
+    by_key: dict[tuple[Layer, str], list] = defaultdict(list)
     for f in state.facts:
         by_key[(f.layer, f.subcategory)].append(f)
 
-    story: Dict[str, Dict[str, str]] = defaultdict(dict)
+    story: dict[str, dict[str, str]] = defaultdict(dict)
     for (layer, sub), facts in sorted(by_key.items(), key=lambda x: x[0][0].value):
         green = [f for f in facts if f.flag == Flag.GREEN]
         red = [f for f in facts if f.flag == Flag.RED]

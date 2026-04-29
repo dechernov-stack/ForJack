@@ -1,21 +1,19 @@
 """Tests for EventWatcher — RSS + GDELT + Slack mock, all external calls mocked."""
 from __future__ import annotations
 
-import json
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
+import httpx
 import pytest
 import respx
-import httpx
 
 from storytelling_bot.watcher.event_watcher import (
     EventWatcher,
     _event_id,
+    _fetch_gdelt_events,
+    _fetch_rss_events,
     _load_seen,
     _save_seen,
-    _fetch_rss_events,
-    _fetch_gdelt_events,
     _send_slack_alert,
 )
 

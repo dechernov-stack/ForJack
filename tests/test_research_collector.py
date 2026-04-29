@@ -1,19 +1,13 @@
 """Tests for ResearchCollector — Tavily + GDELT + SEC, with respx mocks."""
 from __future__ import annotations
 
-import json
-import os
-import hashlib
-import tempfile
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
+import httpx
 import pytest
 import respx
-import httpx
 
 from storytelling_bot.schema import SourceType
-
 
 # ── fixtures ─────────────────────────────────────────────────────────────────
 

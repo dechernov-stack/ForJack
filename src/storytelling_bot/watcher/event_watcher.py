@@ -9,9 +9,9 @@ import hashlib
 import json
 import logging
 import os
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
@@ -58,7 +58,7 @@ def _save_seen(entity_id: str, seen: set[str]) -> None:
 
 # ── Slack alert ───────────────────────────────────────────────────────────────
 
-def _send_slack_alert(entity_id: str, events: List[Dict[str, Any]]) -> None:
+def _send_slack_alert(entity_id: str, events: list[dict[str, Any]]) -> None:
     """Post alert to Slack. Logs mock message when SLACK_WEBHOOK_URL not set."""
     webhook_url = os.environ.get("SLACK_WEBHOOK_URL", "")
     if not events:
@@ -84,7 +84,7 @@ def _send_slack_alert(entity_id: str, events: List[Dict[str, Any]]) -> None:
 
 # ── RSS fetching ──────────────────────────────────────────────────────────────
 
-def _fetch_rss_events(entity_id: str, feeds: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+def _fetch_rss_events(entity_id: str, feeds: list[str] | None = None) -> list[dict[str, Any]]:
     """Fetch RSS feeds and filter entries that mention entity_id."""
     if feedparser is None:
         log.warning("feedparser not installed — skipping RSS")
@@ -113,7 +113,7 @@ def _fetch_rss_events(entity_id: str, feeds: Optional[List[str]] = None) -> List
                     "url": link,
                     "title": title,
                     "summary": summary[:200],
-                    "date": pub_date[:10] if pub_date else datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                    "date": pub_date[:10] if pub_date else datetime.now(UTC).strftime("%Y-%m-%d"),
                 })
         except Exception as e:
             log.warning("RSS fetch failed for %s: %s", feed_url, e)
@@ -123,10 +123,10 @@ def _fetch_rss_events(entity_id: str, feeds: Optional[List[str]] = None) -> List
 
 # ── GDELT fetching ────────────────────────────────────────────────────────────
 
-def _fetch_gdelt_events(entity_id: str, days: int = 1) -> List[Dict[str, Any]]:
+def _fetch_gdelt_events(entity_id: str, days: int = 1) -> list[dict[str, Any]]:
     """Fetch GDELT articles mentioning entity in the last N days."""
     name = entity_id.replace("-", " ")
-    end = datetime.now(timezone.utc)
+    end = datetime.now(UTC)
     start = end - timedelta(days=days)
 
     params = {
@@ -153,7 +153,7 @@ def _fetch_gdelt_events(entity_id: str, days: int = 1) -> List[Dict[str, Any]]:
         seendate = art.get("seendate", "")
         if not url or not title:
             continue
-        date = seendate[:8] if len(seendate) >= 8 else datetime.now(timezone.utc).strftime("%Y%m%d")
+        date = seendate[:8] if len(seendate) >= 8 else datetime.now(UTC).strftime("%Y%m%d")
         date_fmt = f"{date[:4]}-{date[4:6]}-{date[6:8]}" if len(date) == 8 else date
         events.append({
             "source": "gdelt",
@@ -173,14 +173,14 @@ class EventWatcher:
     def __init__(
         self,
         entity_id: str,
-        rss_feeds: Optional[List[str]] = None,
+        rss_feeds: list[str] | None = None,
         alert_on_red_flag: bool = True,
     ) -> None:
         self.entity_id = entity_id
         self.rss_feeds = rss_feeds
         self.alert_on_red_flag = alert_on_red_flag
 
-    def poll(self, gdelt_days: int = 1) -> List[Dict[str, Any]]:
+    def poll(self, gdelt_days: int = 1) -> list[dict[str, Any]]:
         """
         Poll all sources. Return list of NEW events (not seen before).
         Sends Slack alert if new events found.
@@ -208,9 +208,9 @@ class EventWatcher:
         )
         return new_events
 
-    def check_red_flags(self, events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def check_red_flags(self, events: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Filter events that may contain red flag signals (keyword-based)."""
-        from storytelling_bot.sanctions.checker import _check_keyword_rules  # noqa: PLC0415
+        from storytelling_bot.sanctions.checker import _check_keyword_rules
         flagged = []
         for ev in events:
             text = ev.get("title", "") + " " + ev.get("summary", "")

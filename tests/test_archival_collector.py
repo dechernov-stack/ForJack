@@ -1,13 +1,11 @@
 """Tests for ArchivalCollector — Wayback Machine CDX + snapshot, respx mocked."""
 from __future__ import annotations
 
-import json
-from pathlib import Path
 from unittest.mock import patch
 
+import httpx
 import pytest
 import respx
-import httpx
 
 from storytelling_bot.schema import SourceType
 

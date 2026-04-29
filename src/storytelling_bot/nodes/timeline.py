@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 from storytelling_bot.schema import LAYER_LABEL, State
 
@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 
 def node_timeline_builder(state: State) -> dict:
-    events: List[Dict[str, Any]] = []
+    events: list[dict[str, Any]] = []
     for f in state.facts:
         if f.event_date:
             events.append({

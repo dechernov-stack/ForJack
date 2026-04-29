@@ -15,7 +15,6 @@ import pytest
 from storytelling_bot.graph import build_graph
 from storytelling_bot.schema import Flag, State
 
-
 # ── Mock pipeline: both entities ──────────────────────────────────────────────
 
 def _run_entity(entity_id: str) -> State:

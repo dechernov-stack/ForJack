@@ -5,7 +5,7 @@ import datetime as dt
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from storytelling_bot.collectors.base import DEMO_CORPUS
 from storytelling_bot.schema import SourceType
@@ -17,7 +17,7 @@ _OVERLAY_PATH = Path("offline_overlay.json")
 class OfflineIngest:
     source_type = SourceType.OFFLINE_INTERVIEW
 
-    def collect(self, entity_id: str) -> List[Dict[str, Any]]:
+    def collect(self, entity_id: str) -> list[dict[str, Any]]:
         corpus = DEMO_CORPUS.get(entity_id, [])
         base = [c for c in corpus if c["source_type"] == self.source_type]
         if _OVERLAY_PATH.exists():
@@ -39,7 +39,7 @@ class OfflineIngest:
         return base
 
     def add_fact(self, entity_id: str, text: str, source_url: str) -> None:
-        overlay: List[Dict[str, Any]] = []
+        overlay: list[dict[str, Any]] = []
         if _OVERLAY_PATH.exists():
             try:
                 overlay = json.loads(_OVERLAY_PATH.read_text(encoding="utf-8"))
