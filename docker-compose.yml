@@ -73,6 +73,17 @@ services:
       timeout: 5s
       retries: 10
 
+  yente:
+    image: ghcr.io/opensanctions/yente:latest
+    ports: ["8000:8000"]
+    environment:
+      YENTE_ENDPOINT_URL: "https://data.opensanctions.org/datasets/latest/index.json"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
   storyteller:
     build: .
     env_file: .env
@@ -80,6 +91,7 @@ services:
       postgres: { condition: service_healthy }
       minio:    { condition: service_started }
       qdrant:   { condition: service_started }
+      yente:    { condition: service_started }
     environment:
       DATABASE_URL: postgresql://storyteller:storyteller@postgres:5432/storyteller
       MINIO_ENDPOINT: http://minio:9000
@@ -90,6 +102,7 @@ services:
       LANGFUSE_HOST: http://langfuse:3000
       LANGFUSE_PUBLIC_KEY: pk-lf-local-dev
       LANGFUSE_SECRET_KEY: sk-lf-local-dev
+      YENTE_URL: http://yente:8000
     volumes:
       - ./data:/app/data
       - ./reports:/app/reports

@@ -1,12 +1,10 @@
-"""Tests for sanctions checker: keyword rules + OpenSanctions API mock."""
+"""Tests for sanctions checker: keyword rules + OpenSanctions API mock + yente."""
 from __future__ import annotations
 
 from unittest.mock import patch
 
-import pytest
-import respx
 import httpx
-
+import respx
 
 # ── keyword rule tests ────────────────────────────────────────────────────────
 
@@ -180,9 +178,10 @@ def test_check_sanctions_uses_keyword_first_skips_api():
 
 def test_flag_detector_uses_sanctions_before_llm():
     """Sanctions checker fires → flag=RED without LLM call."""
+    import datetime as dt
+
     from storytelling_bot.nodes.flag_detector import node_flag_detector
     from storytelling_bot.schema import Fact, Flag, Layer, SourceType, State
-    import datetime as dt
 
     fact = Fact(
         entity_id="badco",
@@ -207,3 +206,140 @@ def test_flag_detector_uses_sanctions_before_llm():
     assert updated_facts[0].flag == Flag.RED
     assert updated_facts[0].red_flag_category == "hard:sanctions"
     assert updated_facts[0].confidence >= 0.85
+
+
+# ── yente (local OpenSanctions) tests ────────────────────────────────────────
+
+@respx.mock
+def test_yente_hit_returns_hard_sanctions(monkeypatch):
+    """_query_yente returns hard:sanctions when yente POST /match returns a hit."""
+    from storytelling_bot.sanctions.checker import _query_yente
+
+    monkeypatch.setenv("YENTE_URL", "http://localhost:8000")
+    respx.post("http://localhost:8000/match/default").mock(
+        return_value=httpx.Response(200, json={
+            "responses": {
+                "entity": {
+                    "results": [
+                        {
+                            "score": 0.92,
+                            "datasets": ["us_ofac_sdn"],
+                            "properties": {"name": ["Ivan Sanctioned"]},
+                        }
+                    ]
+                }
+            }
+        })
+    )
+
+    result = _query_yente("Ivan Sanctioned")
+    assert result is not None
+    cat, conf = result
+    assert cat == "hard:sanctions"
+    assert conf >= 0.85
+
+
+@respx.mock
+def test_yente_fallback_to_public_api_on_failure(monkeypatch):
+    """When yente is unreachable, _query_opensanctions falls back to public API."""
+    from storytelling_bot.sanctions.checker import _query_opensanctions
+
+    monkeypatch.setenv("YENTE_URL", "http://localhost:8000")
+    # yente returns connection error (simulated by 503)
+    respx.post("http://localhost:8000/match/default").mock(
+        return_value=httpx.Response(503)
+    )
+    # public API returns a hit
+    respx.get("https://api.opensanctions.org/entities/").mock(
+        return_value=httpx.Response(200, json={
+            "results": [
+                {
+                    "score": 0.80,
+                    "datasets": ["us_ofac_sdn"],
+                    "properties": {"name": ["Ivan Sanctioned"]},
+                }
+            ]
+        })
+    )
+
+    result = _query_opensanctions("Ivan Sanctioned")
+    assert result is not None
+    assert result[0] == "hard:sanctions"
+
+
+@respx.mock
+def test_yente_preferred_over_public_api(monkeypatch):
+    """When yente returns a hit, public API must not be called."""
+    from storytelling_bot.sanctions.checker import _query_opensanctions
+
+    monkeypatch.setenv("YENTE_URL", "http://localhost:8000")
+    respx.post("http://localhost:8000/match/default").mock(
+        return_value=httpx.Response(200, json={
+            "responses": {
+                "entity": {
+                    "results": [
+                        {
+                            "score": 0.95,
+                            "datasets": ["us_ofac_sdn"],
+                            "properties": {"name": ["Suspect Person"]},
+                        }
+                    ]
+                }
+            }
+        })
+    )
+    # If public API were called, respx would raise MockRouteError (unmocked GET)
+    # — the test passes only if _query_yente returns a result and public API is skipped.
+    result = _query_opensanctions("Suspect Person")
+    assert result is not None
+    assert result[0] == "hard:sanctions"
+
+
+# ── SDN person → TERMINATE pipeline integration ───────────────────────────────
+
+@respx.mock
+def test_sdn_person_pipeline_terminates(monkeypatch):
+    """Fake SDN entity with hard:sanctions → pipeline decision = terminate."""
+    import datetime as dt
+
+    from storytelling_bot.nodes.decision_engine import node_decision_engine
+    from storytelling_bot.schema import Fact, Flag, Layer, SourceType, State
+
+    monkeypatch.setenv("YENTE_URL", "http://localhost:8000")
+    # Yente returns a hit for this entity
+    respx.post("http://localhost:8000/match/default").mock(
+        return_value=httpx.Response(200, json={
+            "responses": {
+                "entity": {
+                    "results": [
+                        {
+                            "score": 0.94,
+                            "datasets": ["us_ofac_sdn"],
+                            "properties": {"name": ["Vladimir Sanctioned"]},
+                        }
+                    ]
+                }
+            }
+        })
+    )
+
+    # Build state with a fact already flagged red (hard:sanctions)
+    fact = Fact(
+        entity_id="sdn_test_entity",
+        layer=Layer.PEST_CONTEXT,
+        subcategory="Policy & regulation",
+        source_type=SourceType.ONLINE_RESEARCH,
+        text="Vladimir Sanctioned added to OFAC SDN list for financial crimes.",
+        source_url="https://ofac.treasury.gov/fake",
+        captured_at=dt.datetime.now(dt.UTC),
+        flag=Flag.RED,
+        confidence=0.94,
+        red_flag_category="hard:sanctions",
+    )
+    state = State(entity_id="sdn_test_entity", facts=[fact])
+    result = node_decision_engine(state)
+    decision = result["decision"]
+    assert decision["recommendation"] == "terminate", (
+        f"Expected TERMINATE for hard:sanctions, got {decision['recommendation']!r}"
+    )
+    assert decision["human_approval_required"] is True

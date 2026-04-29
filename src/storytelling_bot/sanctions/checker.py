@@ -12,7 +12,6 @@ from __future__ import annotations
 import logging
 import os
 import re
-from typing import Optional, Tuple
 
 import httpx
 
@@ -21,10 +20,13 @@ log = logging.getLogger(__name__)
 _OPENSANCTIONS_API = "https://api.opensanctions.org"
 _REQUEST_TIMEOUT = 10
 
+# Local yente instance (preferred when YENTE_URL is set or default docker-compose address)
+_YENTE_URL_DEFAULT = "http://localhost:8000"
+
 
 # ── OFAC/Sanctions keyword patterns (deterministic) ──────────────────────────
 
-_HARD_PATTERNS: list[Tuple[str, str, float]] = [
+_HARD_PATTERNS: list[tuple[str, str, float]] = [
     # (regex, flag_category, confidence)
     (
         r"\b(OFAC|SDN list|sanctioned|sanctions list|treasury sanctions|EU sanctions|UN sanctions|UK sanctions)\b",
@@ -59,7 +61,7 @@ _HARD_PATTERN_COMPILED = [
 ]
 
 
-def _check_keyword_rules(text: str) -> Optional[Tuple[str, float]]:
+def _check_keyword_rules(text: str) -> tuple[str, float] | None:
     """Return first matching hard flag from keyword rules, or None."""
     for pattern, category, confidence in _HARD_PATTERN_COMPILED:
         if pattern.search(text):
@@ -67,18 +69,72 @@ def _check_keyword_rules(text: str) -> Optional[Tuple[str, float]]:
     return None
 
 
-# ── OpenSanctions API ─────────────────────────────────────────────────────────
+# ── OpenSanctions / yente helpers ────────────────────────────────────────────
 
-def _query_opensanctions(entity_name: str) -> Optional[Tuple[str, float]]:
+def _parse_sanctions_results(results: list[dict], entity_name: str) -> tuple[str, float] | None:
+    """Shared result parser for both yente and public API responses."""
+    for result in results:
+        score = result.get("score", 0.0)
+        datasets = result.get("datasets", [])
+        if score >= 0.7 and datasets:
+            properties = result.get("properties", {})
+            name_in_result = (properties.get("name") or [""])[0]
+            log.warning(
+                "OpenSanctions HIT for %r: name=%r score=%.2f datasets=%s",
+                entity_name,
+                name_in_result,
+                score,
+                datasets[:3],
+            )
+            return "hard:sanctions", min(0.95, 0.70 + score * 0.25)
+    return None
+
+
+def _query_yente(entity_name: str) -> tuple[str, float] | None:
     """
-    Query OpenSanctions /match endpoint for entity name.
-    Returns hard:sanctions if a match with score ≥ 0.7 is found.
+    Query local yente instance (ghcr.io/opensanctions/yente) for entity matching.
+    Yente uses POST /match with FtM entity payload — faster and no rate limit.
+    """
+    yente_url = os.environ.get("YENTE_URL", _YENTE_URL_DEFAULT)
+    payload = {
+        "queries": {
+            "entity": {
+                "schema": "Thing",
+                "properties": {"name": [entity_name]},
+            }
+        }
+    }
+    try:
+        resp = httpx.post(
+            f"{yente_url}/match/default",
+            json=payload,
+            timeout=_REQUEST_TIMEOUT,
+        )
+    except Exception as e:
+        log.debug("yente not reachable (%s) — will try public API", e)
+        return None
+
+    if resp.status_code != 200:
+        log.debug("yente returned %d — will try public API", resp.status_code)
+        return None
+
+    try:
+        data = resp.json()
+    except Exception:
+        return None
+
+    results = data.get("responses", {}).get("entity", {}).get("results", [])
+    return _parse_sanctions_results(results, entity_name)
+
+
+def _query_opensanctions_public(entity_name: str) -> tuple[str, float] | None:
+    """
+    Fallback: query public api.opensanctions.org.
     API key optional (OPENSANCTIONS_API_KEY env var).
     """
     api_key = os.environ.get("OPENSANCTIONS_API_KEY", "")
     headers = {"Authorization": f"ApiKey {api_key}"} if api_key else {}
 
-    # Use the /entities search endpoint (free, no key required for basic use)
     try:
         resp = httpx.get(
             f"{_OPENSANCTIONS_API}/entities/",
@@ -87,7 +143,7 @@ def _query_opensanctions(entity_name: str) -> Optional[Tuple[str, float]]:
             timeout=_REQUEST_TIMEOUT,
         )
     except Exception as e:
-        log.warning("OpenSanctions request failed for %r: %s", entity_name, e)
+        log.warning("OpenSanctions public API request failed for %r: %s", entity_name, e)
         return None
 
     if resp.status_code == 429:
@@ -102,29 +158,20 @@ def _query_opensanctions(entity_name: str) -> Optional[Tuple[str, float]]:
     except Exception:
         return None
 
-    results = data.get("results", [])
-    for result in results:
-        score = result.get("score", 0.0)
-        datasets = result.get("datasets", [])
-        # "default" dataset includes OFAC SDN and other major watchlists
-        if score >= 0.7 and datasets:
-            properties = result.get("properties", {})
-            name_in_result = (properties.get("name") or [""])[0]
-            log.warning(
-                "OpenSanctions HIT for %r: name=%r score=%.2f datasets=%s",
-                entity_name,
-                name_in_result,
-                score,
-                datasets[:3],
-            )
-            return "hard:sanctions", min(0.95, 0.70 + score * 0.25)
+    return _parse_sanctions_results(data.get("results", []), entity_name)
 
-    return None
+
+def _query_opensanctions(entity_name: str) -> tuple[str, float] | None:
+    """Try yente (local) first; fall back to public api.opensanctions.org."""
+    result = _query_yente(entity_name)
+    if result is not None:
+        return result
+    return _query_opensanctions_public(entity_name)
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
-def check_sanctions(text: str, entity_name: Optional[str] = None) -> Optional[Tuple[str, float]]:
+def check_sanctions(text: str, entity_name: str | None = None) -> tuple[str, float] | None:
     """
     Check text and optional entity name for hard red flags.
 
