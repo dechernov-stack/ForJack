@@ -51,11 +51,10 @@ def test_no_keys_returns_none(monkeypatch):
 def test_correct_key_format_does_not_raise(monkeypatch):
     monkeypatch.setenv("LANGFUSE_PUBLIC_KEY", "pk-lf-abc123")
     monkeypatch.setenv("LANGFUSE_SECRET_KEY", "sk-lf-xyz789")
-    monkeypatch.setenv("LANGFUSE_HOST", "http://localhost:3000")
-    from storytelling_bot.langfuse_ctx import ConfigError, get_langfuse
-    # Valid format → must NOT raise ConfigError (may return None if langfuse can't connect)
+    from storytelling_bot.langfuse_ctx import ConfigError, _validate_keys
+    # Test only the key-format validation (no Langfuse import or network call needed).
     try:
-        get_langfuse()
+        _validate_keys()
     except ConfigError:
         pytest.fail("Valid pk-lf-/sk-lf- prefix should not raise ConfigError")
 

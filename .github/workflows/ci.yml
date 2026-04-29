@@ -27,6 +27,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -e ".[dev]"
+          pip install pytest-timeout
 
       - name: Lint with ruff
         run: ruff check src/ tests/
@@ -36,6 +37,7 @@ jobs:
           python -m pytest \
             --ignore=tests/test_faithfulness.py \
             --ignore=tests/test_e2e.py \
+            --timeout=30 \
             -v \
             --tb=short
         env:
