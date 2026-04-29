@@ -37,7 +37,8 @@ faster-whisper>=1.0   # CPU transcription (int8)
 
 # --- Storage ---
 sqlalchemy>=2.0       # ORM/Core for Postgres
-psycopg2-binary>=2.9  # Postgres driver
+psycopg2-binary>=2.9  # Postgres driver (psycopg2)
+psycopg[binary]>=3.1  # Postgres driver (psycopg3, needed for postgresql+psycopg:// URLs)
 qdrant-client>=1.12
 boto3>=1.35           # S3 / MinIO
 neo4j>=5.24           # Knowledge graph (опц.)

@@ -265,7 +265,11 @@ def cmd_serve(
 ) -> None:
     """Start the FastAPI REST API server."""
     import uvicorn
-    uvicorn.run("storytelling_bot.api:app", host=host, port=port, reload=reload)
+    from storytelling_bot.api import app as fastapi_app
+    if reload:
+        uvicorn.run("storytelling_bot.api:app", host=host, port=port, reload=True)
+    else:
+        uvicorn.run(fastapi_app, host=host, port=port)
 
 
 def main() -> None:

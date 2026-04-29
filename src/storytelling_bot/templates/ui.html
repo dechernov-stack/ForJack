@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Storytelling Bot</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "error": "#ba1a1a",
+          "surface-container": "#ededf8",
+          "tertiary": "#7b2600",
+          "primary": "#003d9b",
+          "background": "#faf8ff",
+          "primary-container": "#0052cc",
+          "tertiary-container": "#a33500",
+          "outline-variant": "#c3c6d6",
+          "on-surface-variant": "#434654",
+          "secondary": "#505f76",
+          "surface-variant": "#e1e2ec",
+          "outline": "#737685"
+        },
+        borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+        fontFamily: { "label-caps": ["Inter"], "data-tabular": ["Inter"], "h1": ["Inter"], "body-base": ["Inter"], "body-sm": ["Inter"], "h2": ["Inter"] },
+        fontSize: {
+          "label-caps": ["11px", { lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "600" }],
+          "data-tabular": ["13px", { lineHeight: "18px", fontWeight: "400" }],
+          "h1": ["24px", { lineHeight: "32px", letterSpacing: "-0.02em", fontWeight: "600" }],
+          "body-base": ["14px", { lineHeight: "20px", fontWeight: "400" }],
+          "body-sm": ["13px", { lineHeight: "18px", fontWeight: "400" }],
+          "h2": ["18px", { lineHeight: "24px", letterSpacing: "-0.01em", fontWeight: "600" }]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 20; font-size: 20px; vertical-align: middle; }
+  .thin-border { border-width: 0.5px; }
+  #spinner { display: none; }
+  #spinner.visible { display: flex; }
+  #dossier-content.hidden { display: none; }
+</style>
+</head>
+<body class="bg-slate-100 font-body-base text-slate-900 antialiased flex h-screen overflow-hidden">
+
+<!-- Sidebar -->
+<aside class="hidden md:flex flex-col w-[260px] h-full py-4 gap-2 bg-slate-50 border-r-[0.5px] border-slate-200 shrink-0">
+  <div class="px-4 mb-4">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded bg-primary flex items-center justify-center text-white">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">radar</span>
+      </div>
+      <div>
+        <h2 class="font-h2 text-sm text-blue-700 leading-tight">Core Intelligence</h2>
+        <p class="text-[10px] text-slate-500 uppercase tracking-widest">Storytelling Bot</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Static nav -->
+  <nav class="px-3 space-y-1">
+    <a class="flex items-center gap-3 px-3 py-2 bg-white text-blue-700 border-[0.5px] border-slate-200 shadow-sm rounded transition-all" href="#">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">description</span>
+      <span class="font-label-caps">Dossier</span>
+    </a>
+  </nav>
+
+  <div class="px-3 mt-2">
+    <p class="font-label-caps text-slate-400 px-3 mb-1">WATCHLIST</p>
+    <div id="watchlist-nav" class="space-y-0.5">
+      <div class="px-3 py-1.5 text-xs text-slate-400">Loading…</div>
+    </div>
+  </div>
+
+  <div class="mt-auto px-3 space-y-2">
+    <!-- Run Analysis -->
+    <div class="px-1">
+      <input id="run-input" type="text" placeholder="entity ID…"
+             class="w-full mb-1 px-2 py-1 text-xs border-[0.5px] border-slate-200 rounded bg-white focus:outline-none focus:border-blue-400"/>
+      <button id="run-btn"
+              class="w-full py-2 bg-primary text-white font-label-caps rounded flex items-center justify-center gap-2 hover:opacity-90 active:opacity-70 transition-all text-xs">
+        <span class="material-symbols-outlined text-[16px]">play_arrow</span>
+        Run Analysis
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="flex-1 flex flex-col h-full overflow-hidden">
+
+  <!-- Top bar -->
+  <header class="flex justify-between items-center h-12 px-4 w-full bg-white border-b-[0.5px] border-slate-200 z-10 shrink-0">
+    <div class="flex items-center gap-4">
+      <span class="text-sm font-bold tracking-tighter text-slate-900 uppercase">Storytelling Bot</span>
+      <form onsubmit="goToEntity(event)" class="hidden md:flex items-center bg-slate-50 border-[0.5px] border-slate-200 rounded px-2 py-1 gap-2">
+        <span class="material-symbols-outlined text-slate-400 text-[18px]">search</span>
+        <input id="search-input" class="bg-transparent border-none focus:ring-0 text-xs w-40 text-slate-600"
+               placeholder="Search entity ID…" type="text"/>
+      </form>
+    </div>
+    <div class="flex items-center gap-2">
+      <span id="entity-pill" class="text-xs font-mono bg-slate-100 text-slate-500 px-2 py-0.5 rounded"></span>
+    </div>
+  </header>
+
+  <!-- Canvas -->
+  <main class="flex-1 overflow-y-auto bg-slate-100 p-6 flex justify-center">
+    <div class="w-full max-w-[760px]">
+
+      <!-- Spinner -->
+      <div id="spinner" class="items-center justify-center py-20 text-slate-400 gap-3">
+        <svg class="animate-spin w-6 h-6" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+        </svg>
+        <span class="text-sm">Loading dossier…</span>
+      </div>
+
+      <!-- Dossier content -->
+      <article id="dossier-content" class="bg-white border-[0.5px] border-slate-200 shadow-sm min-h-screen mb-20 hidden">
+        <div class="p-10 space-y-8">
+
+          <!-- Header -->
+          <div class="flex justify-between items-start">
+            <div class="flex gap-8">
+              <div id="photo-wrap" class="w-[160px] h-[160px] bg-slate-50 border-[0.5px] border-slate-200 rounded shrink-0 overflow-hidden flex items-center justify-center text-slate-300">
+                <span class="material-symbols-outlined text-[48px]">person</span>
+              </div>
+              <div class="space-y-3">
+                <div>
+                  <h1 id="display-name" class="font-h1 text-3xl text-slate-900 mb-1">—</h1>
+                  <p id="aka-string" class="font-body-sm text-slate-500 italic"></p>
+                </div>
+                <div class="grid grid-cols-2 gap-y-3 gap-x-8">
+                  <div>
+                    <p class="font-label-caps text-slate-400">BIRTH</p>
+                    <p id="birth-date" class="font-data-tabular">—</p>
+                  </div>
+                  <div>
+                    <p class="font-label-caps text-slate-400">COUNTRIES</p>
+                    <p id="countries" class="font-data-tabular">—</p>
+                  </div>
+                  <div>
+                    <p class="font-label-caps text-slate-400">FACTS COUNT</p>
+                    <div class="flex items-center gap-1">
+                      <span id="facts-count" class="font-data-tabular font-bold">0</span>
+                      <span id="facts-dot" class="w-2 h-2 rounded-full bg-slate-200"></span>
+                    </div>
+                  </div>
+                  <div>
+                    <p class="font-label-caps text-slate-400">SOURCES</p>
+                    <p id="sources-count" class="font-data-tabular">0 Verified</p>
+                  </div>
+                </div>
+                <div class="pt-1">
+                  <div id="risk-badge"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Decision Rationale -->
+          <div id="decision-plate" class="p-5 bg-slate-50 border-[0.5px] border-slate-200 border-l-4 border-l-slate-300">
+            <h4 class="font-label-caps text-slate-800 mb-1">DECISION RATIONALE
+              <span id="decision-rec" class="ml-2 text-slate-500 normal-case tracking-normal font-normal"></span>
+            </h4>
+            <p id="decision-rationale" class="font-body-base text-slate-700 leading-relaxed">—</p>
+          </div>
+
+          <!-- Red Flags -->
+          <section id="red-flags-section" class="hidden pt-2">
+            <div class="flex items-center gap-2 mb-4">
+              <span class="material-symbols-outlined text-error" style="font-variation-settings:'FILL' 1;">flag</span>
+              <h2 class="font-h2 text-error uppercase tracking-wider">Red Flags</h2>
+            </div>
+            <div class="overflow-hidden border-[0.5px] border-slate-200">
+              <table class="w-full text-left font-data-tabular">
+                <thead class="bg-slate-50 border-b-[0.5px] border-slate-200">
+                  <tr>
+                    <th class="px-4 py-2 font-label-caps text-slate-500 w-28">CATEGORY</th>
+                    <th class="px-4 py-2 font-label-caps text-slate-500">CLAIM</th>
+                    <th class="px-4 py-2 font-label-caps text-slate-500 text-right w-20">CONFIDENCE</th>
+                  </tr>
+                </thead>
+                <tbody id="red-flags-body"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <div class="h-[0.5px] bg-slate-200 w-full"></div>
+
+          <!-- Professional Network -->
+          <section class="space-y-3">
+            <h2 class="font-h2 text-slate-900 flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-blue-700 rounded-full"></span>
+              Professional Network &amp; Affiliations
+            </h2>
+            <ul id="roles-list" class="space-y-2 border-l border-slate-200 ml-2 pl-4"></ul>
+          </section>
+
+          <div class="h-[0.5px] bg-slate-200 w-full"></div>
+
+          <!-- Reference Catalog -->
+          <section class="pt-2">
+            <div class="border-t-[0.5px] border-slate-100 pt-4">
+              <h2 class="font-h2 text-sm text-slate-900 mb-3 uppercase tracking-widest">Reference Catalog</h2>
+              <div id="sources-list" class="space-y-0"></div>
+            </div>
+          </section>
+
+          <!-- Footer -->
+          <div class="pt-8 flex justify-between items-center text-[10px] text-slate-400 uppercase tracking-widest">
+            <span id="footer-entity"></span>
+            <span>Generated by Storytelling Bot</span>
+            <span>CONFIDENTIAL</span>
+          </div>
+
+        </div>
+      </article>
+    </div>
+  </main>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const ENTITY_ID = params.get('entity') || 'stripe';
+
+document.getElementById('entity-pill').textContent = ENTITY_ID;
+document.getElementById('run-input').value = ENTITY_ID;
+
+function goToEntity(e) {
+  e.preventDefault();
+  const val = document.getElementById('search-input').value.trim();
+  if (val) location.href = '/?entity=' + encodeURIComponent(val);
+}
+
+function riskBadge(level) {
+  const styles = {
+    high_risk: 'bg-[#a33500] text-white',
+    watch:     'bg-amber-100 text-amber-800',
+    low_risk:  'bg-green-100 text-green-800',
+    unknown:   'bg-slate-100 text-slate-500',
+  };
+  const labels = {
+    high_risk: 'HIGH RISK PROFILE',
+    watch:     'WATCH',
+    low_risk:  'LOW RISK',
+    unknown:   'UNKNOWN',
+  };
+  const cls = styles[level] || styles.unknown;
+  const lbl = labels[level] || level.replace(/_/g,' ').toUpperCase();
+  return `<span class="inline-flex items-center px-4 py-1.5 rounded-full ${cls} font-label-caps text-[12px]">${lbl}</span>`;
+}
+
+function decisionBorder(rec) {
+  return { terminate: 'border-l-[#a33500]', pause: 'border-l-amber-500', continue: 'border-l-green-500' }[rec] || 'border-l-slate-300';
+}
+
+async function loadWatchlist() {
+  try {
+    const r = await fetch('/api/watchlist');
+    const data = await r.json();
+    const nav = document.getElementById('watchlist-nav');
+    nav.innerHTML = '';
+    for (const e of (data.entities || [])) {
+      const isActive = e.id === ENTITY_ID;
+      const cls = isActive
+        ? 'bg-white border-[0.5px] border-slate-200 shadow-sm text-blue-700'
+        : 'text-slate-600 hover:bg-slate-200/50';
+      nav.innerHTML += `
+        <a href="/?entity=${e.id}" class="flex items-center gap-2 px-3 py-1.5 rounded transition-all ${cls}">
+          <span class="material-symbols-outlined text-[15px]">person</span>
+          <span class="font-label-caps text-[11px] truncate">${e.display_name || e.id}</span>
+        </a>`;
+    }
+  } catch(err) { console.error('watchlist:', err); }
+}
+
+async function loadDossier(entityId) {
+  const spinner = document.getElementById('spinner');
+  const content = document.getElementById('dossier-content');
+  spinner.classList.add('visible');
+  content.classList.add('hidden');
+
+  let d;
+  try {
+    const r = await fetch(`/api/entities/${entityId}/dossier`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    d = await r.json();
+  } catch(err) {
+    spinner.classList.remove('visible');
+    content.innerHTML = `<div class="p-10 text-slate-500 text-sm">
+      No dossier found for <strong>${entityId}</strong>.
+      Use "Run Analysis" to start collecting data.
+    </div>`;
+    content.classList.remove('hidden');
+    return;
+  }
+
+  // header
+  document.title = `${d.display_name} — Storytelling Bot`;
+  document.getElementById('display-name').textContent = d.display_name;
+  document.getElementById('aka-string').textContent = d.aka_string ? `AKA: ${d.aka_string}` : '';
+  document.getElementById('birth-date').textContent = d.birth_date || '—';
+  document.getElementById('countries').textContent = (d.nationalities || []).join(', ') || '—';
+  document.getElementById('facts-count').textContent = d.facts_count;
+  document.getElementById('facts-dot').className = `w-2 h-2 rounded-full ${d.facts_count > 0 ? 'bg-green-500' : 'bg-slate-200'}`;
+  document.getElementById('sources-count').textContent = `${(d.sources || []).length} Verified`;
+  document.getElementById('risk-badge').innerHTML = riskBadge(d.risk_level);
+  document.getElementById('footer-entity').textContent = `Entity: ${d.entity_id}`;
+
+  if (d.photo_url) {
+    document.getElementById('photo-wrap').innerHTML = `<img src="${d.photo_url}" class="w-full h-full object-cover grayscale"/>`;
+  }
+
+  // decision plate
+  const plate = document.getElementById('decision-plate');
+  if (d.decision) {
+    plate.className = `p-5 bg-slate-50 border-[0.5px] border-slate-200 border-l-4 ${decisionBorder(d.decision.recommendation)}`;
+    document.getElementById('decision-rec').textContent = `· ${(d.decision.recommendation || '').toUpperCase()}`;
+    document.getElementById('decision-rationale').textContent = d.decision.rationale || '—';
+  } else {
+    plate.className = 'p-5 bg-slate-50 border-[0.5px] border-slate-200 border-l-4 border-l-slate-200';
+    document.getElementById('decision-rec').textContent = '';
+    document.getElementById('decision-rationale').textContent = 'No decision yet. Run analysis to generate a report.';
+  }
+
+  // red flags
+  const rfSec = document.getElementById('red-flags-section');
+  const rfBody = document.getElementById('red-flags-body');
+  if (d.red_flags && d.red_flags.length > 0) {
+    rfSec.classList.remove('hidden');
+    rfBody.innerHTML = d.red_flags.map(f => `
+      <tr class="border-b-[0.5px] border-slate-100 hover:bg-slate-50">
+        <td class="px-4 py-2"><span class="px-2 py-0.5 rounded bg-red-50 text-error text-[10px] font-bold">${f.category}</span></td>
+        <td class="px-4 py-2 text-sm">${f.text}</td>
+        <td class="px-4 py-2 text-right text-error font-bold text-sm">${Math.round((f.confidence||0)*100)}%</td>
+      </tr>`).join('');
+  } else {
+    rfSec.classList.add('hidden');
+  }
+
+  // roles
+  const rolesList = document.getElementById('roles-list');
+  if (d.roles && d.roles.length > 0) {
+    rolesList.innerHTML = d.roles.map(r => {
+      const yr = r.start_date ? r.start_date.slice(0,4) : null;
+      const period = yr ? ` (${yr}–Present)` : '';
+      return `<li class="text-sm text-slate-600 flex items-start gap-2">
+        <span class="mt-1.5 w-1 h-1 bg-slate-400 rounded-full shrink-0"></span>
+        ${r.role} at ${r.company_name}${period}
+      </li>`;
+    }).join('');
+  } else {
+    rolesList.innerHTML = '<li class="text-sm text-slate-400 italic">No roles extracted yet.</li>';
+  }
+
+  // sources
+  const srcList = document.getElementById('sources-list');
+  if (d.sources && d.sources.length > 0) {
+    srcList.innerHTML = d.sources.slice(0,30).map(s => `
+      <div class="flex justify-between text-[12px] py-1 border-b-[0.5px] border-slate-50 hover:bg-slate-50 px-2 transition-colors">
+        <a href="${s.url}" target="_blank" rel="noopener"
+           class="text-slate-700 font-medium hover:text-blue-700 truncate max-w-[75%]">${s.url}</a>
+        <span class="text-slate-400 tabular-nums shrink-0 ml-2">${(s.captured_at||'').slice(0,10)}</span>
+      </div>`).join('');
+  } else {
+    srcList.innerHTML = '<div class="text-slate-400 text-xs px-2">No sources yet.</div>';
+  }
+
+  spinner.classList.remove('visible');
+  content.classList.remove('hidden');
+}
+
+async function triggerRun() {
+  const entityId = document.getElementById('run-input').value.trim() || ENTITY_ID;
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg> Running…';
+  try {
+    const r = await fetch(`/api/entities/${entityId}/run`, { method: 'POST' });
+    const data = await r.json();
+    pollStatus(data.job_id, entityId, btn);
+  } catch(err) {
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">play_arrow</span> Run Analysis';
+  }
+}
+
+async function pollStatus(jobId, entityId, btn) {
+  const check = async () => {
+    try {
+      const r = await fetch(`/api/runs/${jobId}`);
+      const d = await r.json();
+      if (d.status === 'done') {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">check</span> Done – Reload';
+        btn.onclick = () => { location.href = `/?entity=${entityId}`; };
+      } else if (d.status.startsWith('error')) {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">error</span> Failed';
+      } else {
+        setTimeout(check, 2000);
+      }
+    } catch { setTimeout(check, 3000); }
+  };
+  setTimeout(check, 2000);
+}
+
+document.getElementById('run-btn').addEventListener('click', triggerRun);
+
+loadWatchlist();
+loadDossier(ENTITY_ID);
+</script>
+</body>
+</html>

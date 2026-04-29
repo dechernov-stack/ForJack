@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException
+from fastapi.responses import FileResponse
 
 from .person_resolver import resolve_person
 from .schema import Fact, Flag, Layer
@@ -19,6 +20,12 @@ log = logging.getLogger(__name__)
 app = FastAPI(title="Storytelling Bot API", version="0.1.0")
 
 _WATCHLIST_PATH = Path(os.environ.get("WATCHLIST_PATH", "data/watchlist.json"))
+_UI_HTML = Path(__file__).parent / "templates" / "ui.html"
+
+
+@app.get("/")
+def serve_ui() -> FileResponse:
+    return FileResponse(_UI_HTML, media_type="text/html")
 _store_instance: PostgresStore | None = None
 _runs: dict[str, str] = {}
 
@@ -78,6 +85,14 @@ def get_dossier(entity_id: str) -> dict[str, Any]:
         if f.flag == Flag.RED
     ]
 
+    seen_urls: set[str] = set()
+    sources = []
+    for f in facts:
+        if f.source_url not in seen_urls and not f.source_url.startswith("internal://"):
+            seen_urls.add(f.source_url)
+            cap = f.captured_at.isoformat() if hasattr(f.captured_at, "isoformat") else str(f.captured_at)
+            sources.append({"url": f.source_url, "source_type": str(f.source_type), "captured_at": cap})
+
     return {
         "entity_id": person.entity_id,
         "display_name": person.display_name,
@@ -89,6 +104,7 @@ def get_dossier(entity_id: str) -> dict[str, Any]:
         "roles": [r.model_dump() for r in person.roles],
         "facts_count": len(facts),
         "red_flags": red_flags,
+        "sources": sources,
         "decision": decision,
     }
 
