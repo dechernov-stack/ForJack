@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
 import re
 from datetime import UTC, datetime
 from pathlib import Path
@@ -228,5 +229,7 @@ class ArchivalCollector:
     def collect(self, entity_id: str) -> list[dict[str, Any]]:
         demo = DEMO_CORPUS.get(entity_id, [])
         demo_chunks = [c for c in demo if c["source_type"] == self.source_type]
+        if os.environ.get("LLM_PROVIDER") == "mock":
+            return demo_chunks
         live = _collect_wayback(entity_id)
         return demo_chunks + live

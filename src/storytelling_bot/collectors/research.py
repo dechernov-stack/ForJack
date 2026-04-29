@@ -259,6 +259,9 @@ class ResearchCollector:
         demo = DEMO_CORPUS.get(entity_id, [])
         demo_chunks = [c for c in demo if c["source_type"] == self.source_type]
 
+        if os.environ.get("LLM_PROVIDER") == "mock":
+            return demo_chunks
+
         live: list[dict[str, Any]] = []
         live.extend(_collect_tavily(entity_id))
         live.extend(_collect_gdelt(entity_id))
