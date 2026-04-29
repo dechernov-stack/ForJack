@@ -80,6 +80,48 @@ class Fact(BaseModel):
         return d
 
 
+class PersonRole(BaseModel):
+    """A role held by a person at a company / entity."""
+    entity_id: str
+    company_name: str
+    role: str
+    start_date: dt.date | None = None
+    end_date: dt.date | None = None
+    is_current: bool = True
+
+
+class PersonConnection(BaseModel):
+    """A relationship between a person and another person or entity."""
+    related_person_entity_id: str | None = None
+    related_entity_id: str | None = None
+    relation_type: str
+    strength: float = 0.5
+
+
+class IdentifyingId(BaseModel):
+    id_type: str
+    id_value: str
+    issuing_country: str | None = None
+
+
+class Person(BaseModel):
+    """Structured profile extracted from OSINT facts — powers the Dossier view."""
+    entity_id: str
+    display_name: str
+    birth_date: dt.date | None = None
+    nationalities: list[str] = Field(default_factory=list)
+    photo_url: str | None = None
+    risk_level: str = "unknown"
+    name_variants: list[str] = Field(default_factory=list)
+    identifying_ids: list[IdentifyingId] = Field(default_factory=list)
+    roles: list[PersonRole] = Field(default_factory=list)
+    connections: list[PersonConnection] = Field(default_factory=list)
+
+    @property
+    def aka_string(self) -> str:
+        return ", ".join(self.name_variants) if self.name_variants else ""
+
+
 class State(BaseModel):
     """Graph state passed between nodes."""
     entity_id: str
