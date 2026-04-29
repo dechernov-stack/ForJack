@@ -169,10 +169,11 @@ def _collect_gdelt(entity_id: str) -> list[dict[str, Any]]:
         "enddatetime": end.strftime("%Y%m%d%H%M%S"),
         "format": "json",
     }
+    _timeout = 1 if os.environ.get("LLM_PROVIDER") == "mock" else 20
 
     with langfuse_ctx.span("collector.research.gdelt", input_data={"entity_id": entity_id, "query": query}):
         try:
-            resp = httpx.get(url, params=params, timeout=20)
+            resp = httpx.get(url, params=params, timeout=_timeout)
             if resp.status_code != 200:
                 log.warning("GDELT returned %d for %s", resp.status_code, entity_id)
                 return []
@@ -215,10 +216,11 @@ def _collect_sec(entity_id: str) -> list[dict[str, Any]]:
     dl_dir.mkdir(parents=True, exist_ok=True)
 
     name = entity_id.replace("-", " ").title()
+    _timeout = 1 if os.environ.get("LLM_PROVIDER") == "mock" else 10
     # First check if CIK exists for this entity
     cik_url = f"https://efts.sec.gov/LATEST/search-index?q=%22{name.replace(' ', '+')}%22&dateRange=custom&startdt=2010-01-01&forms=D"
     try:
-        resp = httpx.get(cik_url, timeout=10, headers={"User-Agent": "storytelling-bot de.chernov@gmail.com"})
+        resp = httpx.get(cik_url, timeout=_timeout, headers={"User-Agent": "storytelling-bot de.chernov@gmail.com"})
         data = resp.json()
         hits = data.get("hits", {}).get("hits", [])
         if not hits:
@@ -258,9 +260,6 @@ class ResearchCollector:
         # Always include demo corpus items for known entities
         demo = DEMO_CORPUS.get(entity_id, [])
         demo_chunks = [c for c in demo if c["source_type"] == self.source_type]
-
-        if os.environ.get("LLM_PROVIDER") == "mock":
-            return demo_chunks
 
         live: list[dict[str, Any]] = []
         live.extend(_collect_tavily(entity_id))

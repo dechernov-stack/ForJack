@@ -91,8 +91,9 @@ def _cdx_search(url_prefix: str, from_year: str = "2010", to_year: str = "2024")
         "filter": "statuscode:200",
         "collapse": "digest",  # deduplicate identical content
     }
+    _timeout = 1 if os.environ.get("LLM_PROVIDER") == "mock" else 15
     try:
-        resp = httpx.get(_CDX_URL, params=params, timeout=15)
+        resp = httpx.get(_CDX_URL, params=params, timeout=_timeout)
     except Exception as e:
         log.warning("CDX request failed: %s", e)
         return []
@@ -127,8 +128,9 @@ def _cdx_search(url_prefix: str, from_year: str = "2010", to_year: str = "2024")
 def _fetch_snapshot_text(timestamp: str, original_url: str) -> str | None:
     """Fetch Wayback snapshot and extract plain text (≤3000 chars)."""
     wb_url = f"{_WB_BASE}/{timestamp}if_/{original_url}"
+    _timeout = 1 if os.environ.get("LLM_PROVIDER") == "mock" else 20
     try:
-        resp = httpx.get(wb_url, timeout=20, follow_redirects=True)
+        resp = httpx.get(wb_url, timeout=_timeout, follow_redirects=True)
     except Exception as e:
         log.warning("Snapshot fetch failed %s: %s", wb_url, e)
         return None
@@ -229,7 +231,5 @@ class ArchivalCollector:
     def collect(self, entity_id: str) -> list[dict[str, Any]]:
         demo = DEMO_CORPUS.get(entity_id, [])
         demo_chunks = [c for c in demo if c["source_type"] == self.source_type]
-        if os.environ.get("LLM_PROVIDER") == "mock":
-            return demo_chunks
         live = _collect_wayback(entity_id)
         return demo_chunks + live
