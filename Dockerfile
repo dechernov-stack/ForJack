@@ -12,6 +12,8 @@ RUN pip install --no-cache-dir "yt-dlp>=2024.10" "feedparser>=6.0"
 RUN python -m playwright install --with-deps chromium
 
 COPY src/ ./src/
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
 RUN pip install --no-cache-dir -e .
 
 ENV PYTHONUNBUFFERED=1

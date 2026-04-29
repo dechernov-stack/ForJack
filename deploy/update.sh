@@ -19,6 +19,10 @@ docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml \
 docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml \
     up -d --no-build
 
+echo "[deploy] running alembic migrations..."
+docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml \
+    exec -T storyteller-api alembic upgrade head
+
 # Reload nginx config without downtime
 docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml \
     exec -T nginx nginx -s reload 2>/dev/null || true
