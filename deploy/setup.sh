@@ -64,7 +64,10 @@ systemctl enable --now storyteller.timer
 
 echo ""
 echo "✅ Done."
-echo "   Langfuse → http://$(curl -s ifconfig.me):8080"
-echo "   MinIO    → http://$(curl -s ifconfig.me):8081"
-echo "   Logs     → journalctl -u storyteller -f"
-echo "   Run now  → systemctl start storyteller"
+VPS_IP=$(curl -s ifconfig.me)
+echo "   Storytelling UI → http://${VPS_IP}:8082"
+echo "   Langfuse        → http://${VPS_IP}:8080"
+echo "   MinIO           → http://${VPS_IP}:8081"
+echo "   Logs (API)      → docker compose logs -f storyteller-api"
+echo "   Logs (pipeline) → journalctl -u storyteller -f"
+echo "   Run pipeline    → systemctl start storyteller"
