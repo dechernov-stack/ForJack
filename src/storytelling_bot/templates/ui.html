@@ -73,7 +73,20 @@
   </nav>
 
   <div class="px-3 mt-2">
-    <p class="font-label-caps text-slate-400 px-3 mb-1">WATCHLIST</p>
+    <div class="flex items-center justify-between px-3 mb-1">
+      <p class="font-label-caps text-slate-400">WATCHLIST</p>
+      <button onclick="toggleAddForm()" class="text-slate-400 hover:text-blue-600 transition-colors" title="Add entity">
+        <span class="material-symbols-outlined text-[16px]">add</span>
+      </button>
+    </div>
+    <div id="add-entity-form" class="hidden px-1 mb-1">
+      <input id="add-entity-input" type="text" placeholder="entity-id…"
+             class="w-full mb-1 px-2 py-1 text-xs border-[0.5px] border-blue-300 rounded bg-white focus:outline-none focus:border-blue-500"/>
+      <button onclick="addEntityToWatchlist()"
+              class="w-full py-1 bg-blue-600 text-white font-label-caps rounded text-xs hover:bg-blue-700 active:opacity-70 transition-all">
+        Add to watchlist
+      </button>
+    </div>
     <div id="watchlist-nav" class="space-y-0.5">
       <div class="px-3 py-1.5 text-xs text-slate-400">Loading…</div>
     </div>
@@ -477,6 +490,40 @@ async function toggleWatchlist() {
     }
   }
 }
+
+function toggleAddForm() {
+  const form = document.getElementById('add-entity-form');
+  form.classList.toggle('hidden');
+  if (!form.classList.contains('hidden')) {
+    document.getElementById('add-entity-input').focus();
+  }
+}
+
+async function addEntityToWatchlist() {
+  const input = document.getElementById('add-entity-input');
+  const id = input.value.trim().toLowerCase().replace(/\s+/g, '-');
+  if (!id) return;
+  const r = await fetch('/api/watchlist', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, kind: 'person' }),
+  });
+  if (r.status === 201) {
+    input.value = '';
+    document.getElementById('add-entity-form').classList.add('hidden');
+    showToast(`Added ${id} to watchlist`);
+    loadWatchlist();
+  } else if (r.status === 409) {
+    showToast('Already in watchlist');
+  } else {
+    showToast('Error adding to watchlist', false);
+  }
+}
+
+document.getElementById('add-entity-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addEntityToWatchlist();
+  if (e.key === 'Escape') document.getElementById('add-entity-form').classList.add('hidden');
+});
 
 loadWatchlist();
 loadDossier(ENTITY_ID);
