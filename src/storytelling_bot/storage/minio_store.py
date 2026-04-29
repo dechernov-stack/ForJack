@@ -28,6 +28,18 @@ class MinIOStore:
 
     def _get_client(self):
         if self._client is None:
+            import socket
+            from urllib.parse import urlparse
+
+            parsed = urlparse(self._endpoint)
+            host = parsed.hostname or "localhost"
+            port = parsed.port or 80
+            try:
+                with socket.create_connection((host, port), timeout=1):
+                    pass
+            except OSError as exc:
+                raise RuntimeError(f"MinIO unreachable at {self._endpoint}") from exc
+
             import boto3
             self._client = boto3.client(
                 "s3",
