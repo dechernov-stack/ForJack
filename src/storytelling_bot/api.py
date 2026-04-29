@@ -1,15 +1,18 @@
 """FastAPI REST API — dossier, watchlist, pipeline trigger."""
 from __future__ import annotations
 
+import datetime
 import json
 import logging
 import os
+import threading
 import uuid
 from pathlib import Path
 from typing import Any
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 
 from .person_resolver import resolve_person
 from .schema import Fact, Flag, Layer
@@ -21,13 +24,14 @@ app = FastAPI(title="Storytelling Bot API", version="0.1.0")
 
 _WATCHLIST_PATH = Path(os.environ.get("WATCHLIST_PATH", "data/watchlist.json"))
 _UI_HTML = Path(__file__).parent / "templates" / "ui.html"
+_watchlist_lock = threading.Lock()
+_store_instance: PostgresStore | None = None
+_runs: dict[str, str] = {}
 
 
 @app.get("/")
 def serve_ui() -> FileResponse:
     return FileResponse(_UI_HTML, media_type="text/html")
-_store_instance: PostgresStore | None = None
-_runs: dict[str, str] = {}
 
 
 def _store() -> PostgresStore:
@@ -37,13 +41,60 @@ def _store() -> PostgresStore:
     return _store_instance
 
 
+def _read_watchlist() -> dict[str, Any]:
+    if not _WATCHLIST_PATH.exists():
+        return {"entities": []}
+    return json.loads(_WATCHLIST_PATH.read_text(encoding="utf-8"))
+
+
+def _write_watchlist(data: dict[str, Any]) -> None:
+    _WATCHLIST_PATH.parent.mkdir(parents=True, exist_ok=True)
+    _WATCHLIST_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
 # ── Watchlist ─────────────────────────────────────────────────────────────────
 
 @app.get("/api/watchlist")
 def get_watchlist() -> dict[str, Any]:
-    if not _WATCHLIST_PATH.exists():
-        return {"entities": []}
-    return json.loads(_WATCHLIST_PATH.read_text(encoding="utf-8"))
+    return _read_watchlist()
+
+
+class WatchlistEntry(BaseModel):
+    id: str
+    display_name: str = ""
+    kind: str = "person"
+    notes: str = ""
+
+
+@app.post("/api/watchlist", status_code=201)
+def add_to_watchlist(entry: WatchlistEntry) -> dict[str, Any]:
+    with _watchlist_lock:
+        data = _read_watchlist()
+        entities = data.get("entities", [])
+        if any(e["id"] == entry.id for e in entities):
+            raise HTTPException(status_code=409, detail="Already in watchlist")
+        entities.append({
+            "id": entry.id,
+            "kind": entry.kind,
+            "display_name": entry.display_name or entry.id.replace("-", " ").title(),
+            "added_at": datetime.date.today().isoformat(),
+            "notes": entry.notes,
+        })
+        data["entities"] = entities
+        _write_watchlist(data)
+    return {"id": entry.id, "status": "added"}
+
+
+@app.delete("/api/watchlist/{entity_id}", status_code=204)
+def remove_from_watchlist(entity_id: str) -> None:
+    with _watchlist_lock:
+        data = _read_watchlist()
+        entities = data.get("entities", [])
+        filtered = [e for e in entities if e["id"] != entity_id]
+        if len(filtered) == len(entities):
+            raise HTTPException(status_code=404, detail="Not in watchlist")
+        data["entities"] = filtered
+        _write_watchlist(data)
 
 
 # ── Dossier ───────────────────────────────────────────────────────────────────
@@ -93,6 +144,8 @@ def get_dossier(entity_id: str) -> dict[str, Any]:
             cap = f.captured_at.isoformat() if hasattr(f.captured_at, "isoformat") else str(f.captured_at)
             sources.append({"url": f.source_url, "source_type": str(f.source_type), "captured_at": cap})
 
+    wl_ids = {e["id"] for e in _read_watchlist().get("entities", [])}
+
     return {
         "entity_id": person.entity_id,
         "display_name": person.display_name,
@@ -106,6 +159,7 @@ def get_dossier(entity_id: str) -> dict[str, Any]:
         "red_flags": red_flags,
         "sources": sources,
         "decision": decision,
+        "in_watchlist": entity_id in wl_ids,
     }
 
 

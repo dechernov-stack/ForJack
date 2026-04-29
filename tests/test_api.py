@@ -4,7 +4,6 @@ from __future__ import annotations
 import json
 from unittest.mock import MagicMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
 
 from storytelling_bot.api import app
@@ -109,3 +108,72 @@ def test_get_run_status_known():
     resp = client.get("/api/runs/test-known-job-42")
     assert resp.status_code == 200
     assert resp.json()["status"] == "done"
+
+
+# ── watchlist write ───────────────────────────────────────────────────────────
+
+def test_add_to_watchlist(tmp_path, monkeypatch):
+    import storytelling_bot.api as api_mod
+    wl = tmp_path / "watchlist.json"
+    wl.write_text('{"entities": []}')
+    monkeypatch.setattr(api_mod, "_WATCHLIST_PATH", wl)
+    resp = client.post("/api/watchlist", json={"id": "new-co", "display_name": "New Co"})
+    assert resp.status_code == 201
+    assert resp.json()["id"] == "new-co"
+    data = json.loads(wl.read_text())
+    assert data["entities"][0]["id"] == "new-co"
+    assert "added_at" in data["entities"][0]
+
+
+def test_add_to_watchlist_duplicate(tmp_path, monkeypatch):
+    import storytelling_bot.api as api_mod
+    wl = tmp_path / "watchlist.json"
+    wl.write_text('{"entities": [{"id": "stripe"}]}')
+    monkeypatch.setattr(api_mod, "_WATCHLIST_PATH", wl)
+    resp = client.post("/api/watchlist", json={"id": "stripe"})
+    assert resp.status_code == 409
+
+
+def test_add_sets_display_name_from_id(tmp_path, monkeypatch):
+    import storytelling_bot.api as api_mod
+    wl = tmp_path / "watchlist.json"
+    wl.write_text('{"entities": []}')
+    monkeypatch.setattr(api_mod, "_WATCHLIST_PATH", wl)
+    client.post("/api/watchlist", json={"id": "elon-musk"})
+    data = json.loads(wl.read_text())
+    assert data["entities"][0]["display_name"] == "Elon Musk"
+
+
+def test_remove_from_watchlist(tmp_path, monkeypatch):
+    import storytelling_bot.api as api_mod
+    wl = tmp_path / "watchlist.json"
+    wl.write_text('{"entities": [{"id": "stripe"}, {"id": "anthropic"}]}')
+    monkeypatch.setattr(api_mod, "_WATCHLIST_PATH", wl)
+    resp = client.delete("/api/watchlist/stripe")
+    assert resp.status_code == 204
+    data = json.loads(wl.read_text())
+    assert len(data["entities"]) == 1
+    assert data["entities"][0]["id"] == "anthropic"
+
+
+def test_remove_from_watchlist_not_found(tmp_path, monkeypatch):
+    import storytelling_bot.api as api_mod
+    wl = tmp_path / "watchlist.json"
+    wl.write_text('{"entities": []}')
+    monkeypatch.setattr(api_mod, "_WATCHLIST_PATH", wl)
+    resp = client.delete("/api/watchlist/nonexistent")
+    assert resp.status_code == 404
+
+
+def test_dossier_includes_in_watchlist_flag(tmp_path, monkeypatch):
+    import storytelling_bot.api as api_mod
+    wl = tmp_path / "watchlist.json"
+    wl.write_text('{"entities": [{"id": "stripe"}]}')
+    monkeypatch.setattr(api_mod, "_WATCHLIST_PATH", wl)
+    with patch("storytelling_bot.api._store", return_value=_mock_store()):
+        resp = client.get("/api/entities/stripe/dossier")
+    assert resp.json()["in_watchlist"] is True
+
+    with patch("storytelling_bot.api._store", return_value=_mock_store()):
+        resp2 = client.get("/api/entities/unknown-x/dossier")
+    assert resp2.json()["in_watchlist"] is False
