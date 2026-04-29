@@ -46,6 +46,10 @@ neo4j>=5.24           # Knowledge graph (опц.)
 langfuse>=2.50
 structlog>=24.4
 
+# --- API server ---
+fastapi>=0.115
+uvicorn[standard]>=0.30
+
 # --- Testing ---
 pytest>=8.3
 pytest-asyncio>=0.24

@@ -257,6 +257,17 @@ def cmd_export_html(
     console.print(f"[green]Dashboard → {output}[/green]")
 
 
+@app.command("serve")
+def cmd_serve(
+    host: str = typer.Option("0.0.0.0", "--host", help="Bind host"),
+    port: int = typer.Option(8000, "--port", help="Bind port"),
+    reload: bool = typer.Option(False, "--reload", help="Auto-reload on code changes"),
+) -> None:
+    """Start the FastAPI REST API server."""
+    import uvicorn
+    uvicorn.run("storytelling_bot.api:app", host=host, port=port, reload=reload)
+
+
 def main() -> None:
     app()
 

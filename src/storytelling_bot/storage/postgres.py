@@ -162,6 +162,23 @@ class PostgresStore:
             )
             return [dict(row._mapping) for row in result]
 
+    def load_latest_decision(self, entity_id: str) -> dict[str, Any] | None:
+        from sqlalchemy import text
+        engine = self._get_engine()
+        with engine.connect() as conn:
+            row = conn.execute(
+                text("""
+                    SELECT recommendation, rationale, hard_flag_count,
+                           soft_flag_count, green_count, created_at
+                    FROM decisions WHERE entity_id = :eid
+                    ORDER BY created_at DESC LIMIT 1
+                """),
+                {"eid": entity_id},
+            ).fetchone()
+        if row is None:
+            return None
+        return dict(row._mapping)
+
     def count_facts(self, entity_id: str) -> int:
         from sqlalchemy import text
         engine = self._get_engine()
