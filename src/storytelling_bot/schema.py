@@ -94,7 +94,7 @@ class ExpertProfile(BaseModel):
     version: int = 1
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "ExpertProfile":
+    def from_dict(cls, data: dict[str, Any]) -> ExpertProfile:
         kw = dict(data)
         if "priority_layers" in kw:
             kw["priority_layers"] = [Layer(int(x)) for x in kw["priority_layers"]]
@@ -104,7 +104,7 @@ class ExpertProfile(BaseModel):
 
     def to_jsonable(self) -> dict[str, Any]:
         d = self.model_dump()
-        d["priority_layers"] = [int(l) for l in self.priority_layers]
+        d["priority_layers"] = [int(lay) for lay in self.priority_layers]
         return d
 
 
