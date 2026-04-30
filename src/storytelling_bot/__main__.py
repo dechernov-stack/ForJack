@@ -379,6 +379,7 @@ def cmd_init(
 ) -> None:
     """Stage 1: Create a new storytelling Case (draft)."""
     import uuid
+
     from storytelling_bot.expert.profile import default_profile_for_goal
     from storytelling_bot.workflow.case import Case
     from storytelling_bot.workflow.stages import Stage
@@ -502,6 +503,7 @@ def cmd_monitor_digest(
 ) -> None:
     """Generate delta digest between two Diamond snapshots."""
     import json as _json
+
     from storytelling_bot.reports.delta import compare, render_digest
 
     if prev_report and curr_report:
