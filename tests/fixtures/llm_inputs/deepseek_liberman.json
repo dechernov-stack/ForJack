@@ -1,0 +1,64 @@
+PROVIDER: deepseek (mock — основано на реальном ответе DeepSeek, переведено в JSON-схему)
+QUERY: братья Либерман предприниматели
+RAW_ANSWER:
+{
+  "entities": [
+    {
+      "canonical_name": "Давид Либерман",
+      "canonical_lang": "ru",
+      "role_hint": "серийный предприниматель, AR/AI",
+      "name_variants": [
+        {"lang": "ru", "spelling": "Давид Либерман", "note": ""},
+        {"lang": "en", "spelling": "David Liberman", "note": ""}
+      ],
+      "anchors": [
+        {"type": "dob", "value": "22 февраля 1984", "confidence": 0.9},
+        {"type": "birthplace", "value": "Москва", "confidence": 0.95},
+        {"type": "parent", "value": "родители — учёные-биофизики; отец — лауреат Государственной премии СССР", "confidence": 0.8},
+        {"type": "education", "value": "школа №1311 (Москва), Академия им. Маймонида (Математика и информатика)", "confidence": 0.85},
+        {"type": "company", "value": "Sibilant Interactive (2005)", "confidence": 0.8},
+        {"type": "company", "value": "Kanobu (2008)", "confidence": 0.85},
+        {"type": "company", "value": "Brothers Ventures (2010)", "confidence": 0.8},
+        {"type": "deal", "value": "Brothers Ventures: $1M в Coub", "confidence": 0.7},
+        {"type": "event", "value": "Мульт личности — Первый канал, 2009–2013", "confidence": 0.8},
+        {"type": "company", "value": "Frank.Money / Kernel AR (2015–2016)", "confidence": 0.75},
+        {"type": "deal", "value": "Snapchat приобрёл Kernel AR в 2016 за ~$60M", "confidence": 0.8},
+        {"type": "role", "value": "Snapchat — директор по продукту до 2021", "confidence": 0.8},
+        {"type": "company", "value": "Libermans Co (после 2021)", "confidence": 0.9},
+        {"type": "deal", "value": "Libermans Co привлёк инвестиции при оценке $400M", "confidence": 0.8}
+      ],
+      "negatives": [],
+      "related_entities": [
+        {"rel": "sibling", "entity_id": "Даниил Либерман"}
+      ],
+      "uncertain": false
+    },
+    {
+      "canonical_name": "Даниил Либерман",
+      "canonical_lang": "ru",
+      "role_hint": "серийный предприниматель, AR/AI",
+      "name_variants": [
+        {"lang": "ru", "spelling": "Даниил Либерман", "note": ""},
+        {"lang": "en", "spelling": "Daniil Liberman", "note": ""}
+      ],
+      "anchors": [
+        {"type": "dob", "value": "21 декабря 1982", "confidence": 0.9},
+        {"type": "birthplace", "value": "Москва", "confidence": 0.95},
+        {"type": "parent", "value": "родители — учёные-биофизики; отец — лауреат Государственной премии СССР", "confidence": 0.8},
+        {"type": "education", "value": "школа №1311 (Москва), Академия им. Маймонида", "confidence": 0.85},
+        {"type": "company", "value": "Sibilant Interactive (2005)", "confidence": 0.8},
+        {"type": "company", "value": "Kanobu (2008)", "confidence": 0.85},
+        {"type": "company", "value": "Brothers Ventures (2010)", "confidence": 0.8},
+        {"type": "company", "value": "Kernel AR", "confidence": 0.8},
+        {"type": "deal", "value": "Snapchat acquisition 2016 (~$60M)", "confidence": 0.8},
+        {"type": "company", "value": "Libermans Co", "confidence": 0.9}
+      ],
+      "negatives": [],
+      "related_entities": [
+        {"rel": "sibling", "entity_id": "Давид Либерман"}
+      ],
+      "uncertain": false
+    }
+  ],
+  "uncertainty_note": ""
+}

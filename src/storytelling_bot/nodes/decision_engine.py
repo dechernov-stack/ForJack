@@ -13,13 +13,24 @@ _HIGH_CONF_CATS = {"hard:sanctions", "hard:criminal"}
 
 
 def node_decision_engine(state: State) -> dict:
+    if state.fact_scores:
+        kept_idxs: set[int] = {s.fact_idx for s in state.fact_scores if s.keep}
+    else:
+        kept_idxs = set(range(len(state.facts)))
+
     hard, soft = [], []
-    for f in state.facts:
+    for i, f in enumerate(state.facts):
+        if i not in kept_idxs:
+            continue
         if f.flag != Flag.RED or not f.red_flag_category:
             continue
         (hard if f.red_flag_category.startswith("hard:") else soft).append(f)
 
-    green_in_key = sum(1 for f in state.facts if f.flag == Flag.GREEN and f.layer in _KEY_LAYERS)
+    green_in_key = sum(
+        1 for i, f in enumerate(state.facts)
+        if i in kept_idxs and f.flag == Flag.GREEN and f.layer in _KEY_LAYERS
+    )
+
 
     high_conf_hard = [f for f in hard if f.confidence >= 0.85 and f.red_flag_category in _HIGH_CONF_CATS]
 

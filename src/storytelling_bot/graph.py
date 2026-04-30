@@ -15,11 +15,13 @@ from storytelling_bot.collectors import (
 from storytelling_bot.nodes import (
     embed_facts,
     node_decision_engine,
+    node_expert_critic,
     node_fill_background,
     node_flag_detector,
     node_layer_classifier,
     node_metrics,
     node_reporter,
+    node_resolve_entity,
     node_story_synthesizer,
     node_timeline_builder,
 )
@@ -65,23 +67,27 @@ class GraphWrapper:
 def build_graph() -> GraphWrapper:
     g = StateGraph(State)
 
+    g.add_node("resolve", node_resolve_entity)
     g.add_node("collect", _collect_all)
     g.add_node("background", node_fill_background)
     g.add_node("classify", node_layer_classifier)
     g.add_node("flag", node_flag_detector)
     g.add_node("embed", embed_facts)
+    g.add_node("critic", node_expert_critic)
     g.add_node("timeline", node_timeline_builder)
     g.add_node("synthesize", node_story_synthesizer)
     g.add_node("decide", node_decision_engine)
     g.add_node("metrics", node_metrics)
     g.add_node("report", node_reporter)
 
-    g.set_entry_point("collect")
+    g.set_entry_point("resolve")
+    g.add_edge("resolve", "collect")
     g.add_edge("collect", "background")
     g.add_edge("background", "classify")
     g.add_edge("classify", "flag")
     g.add_edge("flag", "embed")
-    g.add_edge("embed", "timeline")
+    g.add_edge("embed", "critic")
+    g.add_edge("critic", "timeline")
     g.add_edge("timeline", "synthesize")
     g.add_edge("synthesize", "decide")
     g.add_edge("decide", "metrics")

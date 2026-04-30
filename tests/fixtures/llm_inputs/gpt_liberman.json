@@ -1,0 +1,71 @@
+PROVIDER: gpt (mock)
+QUERY: братья Либерман предприниматели
+RAW_ANSWER:
+{
+  "entities": [
+    {
+      "canonical_name": "David Liberman",
+      "canonical_lang": "en",
+      "role_hint": "serial founder; ex-Snapchat product director",
+      "name_variants": [
+        {"lang": "en", "spelling": "David Liberman", "note": ""},
+        {"lang": "en", "spelling": "David Lieberman", "note": "встречается реже"},
+        {"lang": "ru", "spelling": "Давид Либерман", "note": ""},
+        {"lang": "he", "spelling": "דוד ליברמן", "note": ""}
+      ],
+      "anchors": [
+        {"type": "dob", "value": "1984", "confidence": 0.7},
+        {"type": "birthplace", "value": "Moscow, USSR", "confidence": 0.9},
+        {"type": "parent", "value": "father — biophysicist, USSR State Prize laureate", "confidence": 0.6},
+        {"type": "education", "value": "Maimonides Academy, Moscow", "confidence": 0.8},
+        {"type": "company", "value": "Sibilant Interactive", "confidence": 0.7},
+        {"type": "company", "value": "Kanobu", "confidence": 0.8},
+        {"type": "company", "value": "Looksery / Kernel AR", "confidence": 0.7},
+        {"type": "deal", "value": "Snapchat acquisition 2015–2016, $60–150M (estimates vary)", "confidence": 0.75},
+        {"type": "company", "value": "Libermans Co", "confidence": 0.85},
+        {"type": "deal", "value": "Libermans Co valuation ~$400M", "confidence": 0.7},
+        {"type": "event", "value": "Animated TV series Mult Lichnosti for Channel One (2009–2013)", "confidence": 0.7}
+      ],
+      "negatives": [
+        "Не путать: Gil & Ido Liberman (Israel, AnyClip / Vimeo)",
+        "Не путать: Avigdor Lieberman (Israeli politician)",
+        "Не путать: Joe Lieberman (US Senator)",
+        "Не путать: David Liberman (jazz saxophonist)"
+      ],
+      "related_entities": [
+        {"rel": "sibling", "entity_id": "Daniil Liberman"}
+      ],
+      "uncertain": false
+    },
+    {
+      "canonical_name": "Daniil Liberman",
+      "canonical_lang": "en",
+      "role_hint": "serial founder; ex-Snapchat product director",
+      "name_variants": [
+        {"lang": "en", "spelling": "Daniil Liberman", "note": ""},
+        {"lang": "en", "spelling": "Daniel Liberman", "note": "вариант"},
+        {"lang": "ru", "spelling": "Даниил Либерман", "note": ""},
+        {"lang": "he", "spelling": "דניאל ליברמן", "note": ""}
+      ],
+      "anchors": [
+        {"type": "dob", "value": "1982", "confidence": 0.7},
+        {"type": "birthplace", "value": "Moscow, USSR", "confidence": 0.9},
+        {"type": "education", "value": "Maimonides Academy, Moscow", "confidence": 0.8},
+        {"type": "company", "value": "Sibilant Interactive", "confidence": 0.7},
+        {"type": "company", "value": "Kanobu", "confidence": 0.8},
+        {"type": "company", "value": "Looksery / Kernel AR", "confidence": 0.7},
+        {"type": "deal", "value": "Snapchat acquisition 2015–2016", "confidence": 0.75},
+        {"type": "company", "value": "Libermans Co", "confidence": 0.85}
+      ],
+      "negatives": [
+        "Не путать: Gil & Ido Liberman (AnyClip)",
+        "Не путать: израильский политик Avigdor"
+      ],
+      "related_entities": [
+        {"rel": "sibling", "entity_id": "David Liberman"}
+      ],
+      "uncertain": false
+    }
+  ],
+  "uncertainty_note": "Дата сделки Snapchat — у разных источников 2015 vs 2016, сумма $60M vs $150M; в anchor дано как диапазон."
+}

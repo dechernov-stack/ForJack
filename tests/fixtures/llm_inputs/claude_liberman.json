@@ -1,0 +1,69 @@
+PROVIDER: claude (mock)
+QUERY: братья Либерман предприниматели
+RAW_ANSWER:
+{
+  "entities": [
+    {
+      "canonical_name": "Daniil Liberman",
+      "canonical_lang": "en",
+      "role_hint": "tech founder, AR/AI, ex-Snapchat",
+      "name_variants": [
+        {"lang": "en", "spelling": "Daniil Liberman", "note": "канон"},
+        {"lang": "en", "spelling": "Daniel Liberman", "note": "иногда — англоязычные источники"},
+        {"lang": "ru", "spelling": "Даниил Либерман", "note": ""},
+        {"lang": "he", "spelling": "דניאל ליברמן", "note": ""}
+      ],
+      "anchors": [
+        {"type": "dob", "value": "1982-12-21", "confidence": 0.85},
+        {"type": "birthplace", "value": "Москва", "confidence": 0.9},
+        {"type": "parent", "value": "отец — учёный-биофизик, лауреат Госпремии СССР", "confidence": 0.7},
+        {"type": "education", "value": "Школа №1311; Академия Маймонида (Москва)", "confidence": 0.8},
+        {"type": "company", "value": "Sibilant Interactive (2005)", "confidence": 0.85},
+        {"type": "company", "value": "Kanobu (2008)", "confidence": 0.85},
+        {"type": "company", "value": "Kernel AR / Looksery", "confidence": 0.8},
+        {"type": "deal", "value": "Snapchat acquisition 2016, ~$60M", "confidence": 0.85},
+        {"type": "company", "value": "Libermans Co (post-2021)", "confidence": 0.85},
+        {"type": "role", "value": "Snapchat Director of Product 2016–2021", "confidence": 0.8}
+      ],
+      "negatives": [
+        "не путать с Avigdor Liberman (израильский политик)",
+        "не путать с Joe Lieberman (US senator)",
+        "не путать с Greg/John Liberman / Liberty Media (медиа в США)"
+      ],
+      "related_entities": [
+        {"rel": "sibling", "entity_id": "David Liberman"},
+        {"rel": "business_partner", "entity_id": "David Liberman"}
+      ],
+      "uncertain": false
+    },
+    {
+      "canonical_name": "David Liberman",
+      "canonical_lang": "en",
+      "role_hint": "tech founder, AR/AI, ex-Snapchat",
+      "name_variants": [
+        {"lang": "en", "spelling": "David Liberman", "note": "канон"},
+        {"lang": "ru", "spelling": "Давид Либерман", "note": ""},
+        {"lang": "he", "spelling": "דוד ליברמן", "note": ""}
+      ],
+      "anchors": [
+        {"type": "dob", "value": "1984-02-22", "confidence": 0.85},
+        {"type": "birthplace", "value": "Москва", "confidence": 0.9},
+        {"type": "parent", "value": "отец — учёный-биофизик, лауреат Госпремии СССР", "confidence": 0.7},
+        {"type": "education", "value": "Школа №1311; Академия Маймонида (Москва)", "confidence": 0.8},
+        {"type": "company", "value": "Kernel AR / Looksery", "confidence": 0.8},
+        {"type": "deal", "value": "Snapchat acquisition 2016, ~$60M", "confidence": 0.85},
+        {"type": "company", "value": "Libermans Co (post-2021)", "confidence": 0.85}
+      ],
+      "negatives": [
+        "не путать с David Liberman (израильский физик)",
+        "не путать с David Liberman (саксофонист)"
+      ],
+      "related_entities": [
+        {"rel": "sibling", "entity_id": "Daniil Liberman"},
+        {"rel": "business_partner", "entity_id": "Daniil Liberman"}
+      ],
+      "uncertain": false
+    }
+  ],
+  "uncertainty_note": ""
+}

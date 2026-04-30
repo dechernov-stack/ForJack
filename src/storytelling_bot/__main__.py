@@ -46,10 +46,18 @@ def _render_summary(state) -> str:
     lines += ["", "--- STORY (по слоям) ---"]
     for layer_name, subs in state.story.items():
         lines.append(f"\n■ {layer_name}")
-        for sub, narrative in subs.items():
+        for sub, block in subs.items():
             lines.append(f"  ▸ {sub}")
-            for ln in narrative.splitlines():
-                lines.append(f"    {ln}")
+            if isinstance(block, dict):
+                if block.get("thesis"):
+                    lines.append(f"    ТЕЗИС: {textwrap.shorten(block['thesis'], 120)}")
+                for ev in block.get("evidence", [])[:2]:
+                    lines.append(f"    · [{ev.get('flag','?')}] {textwrap.shorten(ev.get('text',''), 100)}")
+            else:
+                for ln in str(block).splitlines():
+                    lines.append(f"    {ln}")
+    if state.cross_layer_overview:
+        lines += ["", "--- CROSS-LAYER OVERVIEW ---", state.cross_layer_overview]
     return "\n".join(lines)
 
 
@@ -78,9 +86,15 @@ def cmd_run(
     output: Path | None = typer.Option(None, "--output", "-o", help="JSON report path"),
     export_html: Path | None = typer.Option(None, "--export-html", help="HTML dashboard path"),
     quiet: bool = typer.Option(False, "--quiet", "-q"),
+    profile_path: Path | None = typer.Option(None, "--profile", help="ExpertProfile JSON path"),
+    hypothesis: str | None = typer.Option(None, "--hypothesis", help="Override profile hypothesis"),
+    voice: str | None = typer.Option(None, "--voice", help="Override profile voice"),
+    save_profile: Path | None = typer.Option(None, "--save-profile", help="Save resolved profile to path"),
 ) -> None:
     """Run full pipeline for an entity."""
     from storytelling_bot.collectors.base import DEMO_CORPUS
+    from storytelling_bot.expert.profile import default_profile_for, load_profile
+    from storytelling_bot.expert.profile import save_profile as _save_profile
     from storytelling_bot.graph import build_graph
     from storytelling_bot.schema import State
 
@@ -88,7 +102,21 @@ def cmd_run(
         # Allow unknown entities for real collectors (Task 4+)
         console.print(f"[yellow]Warning: '{entity}' not in demo corpus — collectors may return 0 chunks[/yellow]")
 
-    state = State(entity_id=entity, report_path=str(output) if output else None)
+    if profile_path:
+        expert_profile = load_profile(profile_path)
+    else:
+        expert_profile = default_profile_for(entity)
+
+    if hypothesis:
+        expert_profile = expert_profile.model_copy(update={"hypothesis": hypothesis})
+    if voice:
+        expert_profile = expert_profile.model_copy(update={"voice": voice})
+
+    if save_profile:
+        _save_profile(expert_profile, save_profile)
+        console.print(f"[green]Profile saved → {save_profile}[/green]")
+
+    state = State(entity_id=entity, report_path=str(output) if output else None, expert_profile=expert_profile)
     graph = build_graph()
     final = graph.run(state)
 
@@ -245,6 +273,42 @@ def cmd_search(
         console.print(f"     {url}\n")
 
 
+@app.command("resolve")
+def cmd_resolve(
+    query: str = typer.Argument(..., help="Entity query, e.g. 'братья Либерман предприниматели'"),
+    providers: str = typer.Option("claude,gpt,deepseek", "--providers", help="Comma-separated provider list"),
+    mock_dir: Path | None = typer.Option(None, "--mock-from", help="Directory with saved LLM answers"),
+    output: Path | None = typer.Option(None, "--output", "-o", help="Save EntityCard JSON"),
+    tavily: bool = typer.Option(False, "--verify-with-tavily"),
+) -> None:
+    """Resolve entity via multi-LLM consensus → EntityCard."""
+    from storytelling_bot.resolver.card import resolve
+
+    provider_list = [p.strip() for p in providers.split(",") if p.strip()]
+    cards = resolve(query=query, providers=provider_list, mock_dir=mock_dir, use_tavily=tavily)
+
+    if not cards:
+        console.print("[red]No EntityCards resolved.[/red]")
+        raise typer.Exit(1)
+
+    for card in cards:
+        consensus_color = "green" if card.consensus_score >= 0.6 else "yellow"
+        console.print(f"[bold]{card.canonical_name}[/bold] ({card.canonical_lang}) "
+                      f"[{consensus_color}]consensus={card.consensus_score:.2f}[/{consensus_color}]")
+        console.print(f"  role: {card.role_hint}")
+        console.print(f"  anchors: {len(card.anchors)} · agreed: {card.providers_agreed}")
+        if card.uncertain:
+            console.print("  [yellow]⚠ uncertain — review before proceeding[/yellow]")
+
+    if output:
+        import json as _json
+        output.write_text(
+            _json.dumps([c.to_jsonable() for c in cards], ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        console.print(f"[green]Saved → {output}[/green]")
+
+
 @app.command("export-html")
 def cmd_export_html(
     report: Path = typer.Argument(..., help="JSON report"),
@@ -255,6 +319,265 @@ def cmd_export_html(
     payload = json.loads(report.read_text(encoding="utf-8"))
     export_html(payload, payload.get("entity_id", "unknown"), str(output))
     console.print(f"[green]Dashboard → {output}[/green]")
+
+
+@app.command("profile")
+def cmd_profile(
+    entity: str = typer.Option("accumulator", "--entity", "-e", help="Entity ID"),
+    goal: str | None = typer.Option(None, "--goal", "-g", help="Goal preset: business|personality|politics|impact"),
+    output: Path | None = typer.Option(None, "--output", "-o", help="Save profile JSON to path"),
+    show: bool = typer.Option(True, "--show/--no-show", help="Print profile to console"),
+) -> None:
+    """Show or generate an ExpertProfile for an entity."""
+    from storytelling_bot.expert.profile import default_profile_for, default_profile_for_goal, save_profile
+
+    if goal:
+        p = default_profile_for_goal(goal)
+    else:
+        p = default_profile_for(entity)
+
+    if output:
+        save_profile(p, output)
+        console.print(f"[green]Profile saved → {output}[/green]")
+
+    if show:
+        console.print(f"[bold]ExpertProfile[/bold] — {p.analyst_name} ({p.role})")
+        console.print(f"  Hypothesis: {p.hypothesis[:120]}")
+        console.print(f"  Voice: {p.voice[:80]}")
+        console.print(f"  Priority layers: {[lay.name for lay in p.priority_layers]}")
+        console.print(f"  keep_threshold: {p.keep_threshold}  min_kept_per_subcat: {p.min_kept_per_subcat}")
+        if p.taboo_topics:
+            console.print(f"  Taboo topics: {p.taboo_topics}")
+
+
+def _case_store_path(case_id: str) -> Path:
+    return Path("data/cases") / f"{case_id}.json"
+
+
+def _load_case(case_id: str):
+    from storytelling_bot.workflow.case import Case
+    p = _case_store_path(case_id)
+    if not p.exists():
+        console.print(f"[red]Case not found: {case_id}[/red]")
+        raise typer.Exit(1)
+    import json as _json
+    return Case.model_validate(_json.loads(p.read_text(encoding="utf-8")))
+
+
+def _save_case(case) -> None:
+    import json as _json
+    p = _case_store_path(case.id)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(_json.dumps(case.model_dump(mode="json"), ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+@app.command("init")
+def cmd_init(
+    query: str = typer.Argument(..., help="Entity query, e.g. 'братья Либерман предприниматели'"),
+    goal: str = typer.Option("business", "--goal", "-g", help="Goal preset: business|personality|politics|impact"),
+    analyst_email: str = typer.Option("", "--analyst-email", help="Analyst email"),
+) -> None:
+    """Stage 1: Create a new storytelling Case (draft)."""
+    import uuid
+
+    from storytelling_bot.expert.profile import default_profile_for_goal
+    from storytelling_bot.workflow.case import Case
+    from storytelling_bot.workflow.stages import Stage
+
+    profile = default_profile_for_goal(goal)
+    case_id = str(uuid.uuid4())[:8]
+    case = Case(
+        id=case_id,
+        title=query,
+        goal=goal,
+        stage=Stage.DRAFT,
+        entity_query=query,
+        created_by=analyst_email or "analyst",
+    )
+    _save_case(case)
+
+    console.print(f"[green]Case created:[/green] {case_id}")
+    console.print(f"  Query: {query}")
+    console.print(f"  Goal: {goal}")
+    console.print(f"  ExpertProfile: {profile.analyst_name} — {profile.voice[:60]}")
+    console.print(f"\nNext: [bold]storyteller resolve {query!r} --output entity_card.json[/bold]")
+    console.print(f"Then: [bold]storyteller verify --case {case_id} --confirmed-by <email>[/bold]")
+
+
+@app.command("verify")
+def cmd_verify(
+    case_id: str = typer.Option(..., "--case", help="Case ID"),
+    confirmed_by: str = typer.Option(..., "--confirmed-by", help="Analyst email"),
+    entity_card_ids: list[str] = typer.Option([], "--entity-card-id", help="EntityCard IDs (repeatable)"),
+    expert_profile_id: str = typer.Option("default", "--profile-id", help="ExpertProfile ID"),
+) -> None:
+    """Stage 2: Analyst confirms EntityCards → transition draft → identified."""
+    case = _load_case(case_id)
+    if entity_card_ids:
+        case = case.model_copy(update={"entity_card_ids": entity_card_ids, "expert_profile_id": expert_profile_id})
+    elif not case.entity_card_ids:
+        case = case.model_copy(update={"entity_card_ids": ["auto"], "expert_profile_id": expert_profile_id})
+
+    case = case.confirm_identification(analyst_email=confirmed_by)
+    _save_case(case)
+    console.print(f"[green]Case {case_id}[/green] → stage: [bold]{case.stage}[/bold]")
+    console.print(f"  Confirmed by: {confirmed_by}")
+    console.print(f"\nNext: [bold]storyteller collect --case {case_id} --depth 2y[/bold]")
+
+
+@app.command("collect")
+def cmd_collect(
+    case_id: str = typer.Option(..., "--case", help="Case ID"),
+    depth: str = typer.Option("2y", "--depth", help="Collection depth: 1y|2y|3y|lifetime"),
+    export_html: Path | None = typer.Option(None, "--export-html"),
+    interactive: bool = typer.Option(False, "--interactive"),
+) -> None:
+    """Stage 3: Run full pipeline for case → first Diamond snapshot."""
+    from storytelling_bot.expert.profile import default_profile_for_goal
+    from storytelling_bot.graph import build_graph
+    from storytelling_bot.schema import State
+
+    case = _load_case(case_id)
+    if not case.expert_profile_id:
+        case = case.model_copy(update={"expert_profile_id": "default"})
+
+    profile = default_profile_for_goal(case.goal)
+    state = State(entity_id=case.entity_query or case.title, expert_profile=profile)
+    final = build_graph().run(state)
+
+    case = case.run_initial_collection(analyst_email=case.created_by, depth=depth)
+    _save_case(case)
+
+    payload = _build_payload(final)
+    if export_html:
+        from storytelling_bot.dashboard import export_html as do_export
+        export_html.parent.mkdir(parents=True, exist_ok=True)
+        do_export(payload, case.entity_query or case.title, str(export_html))
+        console.print(f"[green]Dashboard → {export_html}[/green]")
+
+    console.print(f"[green]Case {case_id}[/green] → stage: [bold]{case.stage}[/bold]")
+    console.print(f"  Facts: {len(final.facts)}  Decision: {final.decision.get('recommendation', '?')}")
+    console.print(f"\nNext: [bold]storyteller monitor start --case {case_id} --mode business-pulse[/bold]")
+
+
+monitor_app = typer.Typer(name="monitor", help="Monitoring commands (Stage 4)")
+app.add_typer(monitor_app)
+
+
+@monitor_app.command("start")
+def cmd_monitor_start(
+    case_id: str = typer.Option(..., "--case", help="Case ID"),
+    mode: str = typer.Option("business-pulse", "--mode", help="Focus mode"),
+    interval: str = typer.Option("6h", "--interval", help="Polling interval (e.g. 6h, 30m)"),
+) -> None:
+    """Transition case collected → monitoring."""
+    case = _load_case(case_id)
+    case = case.start_monitoring(actor=case.created_by, mode=mode)
+    _save_case(case)
+    console.print(f"[green]Case {case_id}[/green] → stage: [bold]{case.stage}[/bold]  mode={mode}")
+    console.print(f"  Poll interval: {interval}")
+
+
+@monitor_app.command("focus")
+def cmd_monitor_focus(
+    case_id: str = typer.Option(..., "--case", help="Case ID"),
+    layer: int = typer.Option(..., "--layer", help="Layer number 1-8"),
+    subcategory: str = typer.Option("", "--subcategory", help="Subcategory name"),
+) -> None:
+    """Set focus on a specific layer/subcategory for next monitoring tick."""
+    case = _load_case(case_id)
+    meta = dict(case.metadata)
+    meta["focus_layer"] = layer
+    meta["focus_subcategory"] = subcategory
+    case = case.model_copy(update={"metadata": meta})
+    _save_case(case)
+    console.print(f"[green]Focus set[/green]: layer={layer}, sub={subcategory!r}")
+
+
+@monitor_app.command("digest")
+def cmd_monitor_digest(
+    case_id: str = typer.Option(..., "--case", help="Case ID"),
+    since: str = typer.Option("", "--since", help="Date filter YYYY-MM-DD"),
+    prev_report: Path | None = typer.Option(None, "--prev-report", help="Previous JSON report"),
+    curr_report: Path | None = typer.Option(None, "--curr-report", help="Current JSON report"),
+) -> None:
+    """Generate delta digest between two Diamond snapshots."""
+    import json as _json
+
+    from storytelling_bot.reports.delta import compare, render_digest
+
+    if prev_report and curr_report:
+        prev = _json.loads(prev_report.read_text(encoding="utf-8"))
+        curr = _json.loads(curr_report.read_text(encoding="utf-8"))
+        delta = compare(prev, curr)
+        console.print(render_digest(delta))
+    else:
+        console.print(f"[yellow]Case {case_id}: digest (since={since}) — attach --prev-report and --curr-report[/yellow]")
+
+
+@monitor_app.command("pause")
+def cmd_monitor_pause(
+    case_id: str = typer.Option(..., "--case", help="Case ID"),
+    rationale: str = typer.Option("", "--rationale"),
+) -> None:
+    """Pause monitoring for a case."""
+    case = _load_case(case_id)
+    case = case.pause(actor=case.created_by, rationale=rationale)
+    _save_case(case)
+    console.print(f"[yellow]Case {case_id}[/yellow] paused.")
+
+
+@monitor_app.command("terminate")
+def cmd_monitor_terminate(
+    case_id: str = typer.Option(..., "--case", help="Case ID"),
+    rationale: str = typer.Option(..., "--rationale", help="Required rationale for termination"),
+) -> None:
+    """Terminate a case (requires senior analyst rationale)."""
+    case = _load_case(case_id)
+    case = case.terminate(actor=case.created_by, rationale=rationale)
+    _save_case(case)
+    console.print(f"[red]Case {case_id} TERMINATED.[/red]  Rationale: {rationale}")
+
+
+case_app = typer.Typer(name="case", help="Case management commands")
+app.add_typer(case_app)
+
+
+@case_app.command("show")
+def cmd_case_show(
+    case_id: str = typer.Option(..., "--case", help="Case ID"),
+) -> None:
+    """Show current case status and metadata."""
+    case = _load_case(case_id)
+    console.print(f"[bold]Case {case.id}[/bold] — {case.title}")
+    console.print(f"  Goal: {case.goal}  Stage: [bold]{case.stage}[/bold]")
+    console.print(f"  Entity query: {case.entity_query}")
+    console.print(f"  Depth: {case.depth}  Monitor mode: {case.monitor_mode}")
+    console.print(f"  Created by: {case.created_by}  Confirmed by: {case.confirmed_by}")
+    console.print(f"  Transitions: {len(case.transitions)}")
+    for t in case.transitions[-3:]:
+        console.print(f"    {t.from_stage} → {t.to_stage}  by {t.actor}")
+
+
+@case_app.command("list")
+def cmd_case_list(
+    stage: str = typer.Option("", "--stage", help="Filter by stage"),
+) -> None:
+    """List all cases, optionally filtered by stage."""
+    import json as _json
+    cases_dir = Path("data/cases")
+    if not cases_dir.exists():
+        console.print("[yellow]No cases found.[/yellow]")
+        return
+    from storytelling_bot.workflow.case import Case
+    for p in sorted(cases_dir.glob("*.json")):
+        try:
+            c = Case.model_validate(_json.loads(p.read_text(encoding="utf-8")))
+            if stage and c.stage != stage:
+                continue
+            console.print(f"  [cyan]{c.id}[/cyan]  [{c.stage}]  {c.title[:60]}  (goal={c.goal})")
+        except Exception:
+            continue
 
 
 @app.command("serve")
