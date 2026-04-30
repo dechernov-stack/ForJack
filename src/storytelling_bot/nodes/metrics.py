@@ -26,13 +26,23 @@ def node_metrics(state: State) -> dict:
         (now - (f.captured_at if f.captured_at.tzinfo else f.captured_at.replace(tzinfo=dt.UTC))).days
         for f in state.facts
     ]
+
+    total = len(state.facts)
+    kept = sum(1 for s in state.fact_scores if s.keep)
+    challenges = sum(1 for s in state.fact_scores if s.challenges_hypothesis)
+
     metrics = {
         "coverage_pct": round(100 * covered / _TOTAL_SUBCATS, 1),
-        "fact_count": len(state.facts),
+        "fact_count": total,
+        "kept_count": kept,
+        "keep_rate": round(kept / total, 3) if total else 0.0,
+        "challenges_count": challenges,
+        "challenges_per_case": round(challenges / total, 3) if total else 0.0,
         "green_count": sum(1 for f in state.facts if f.flag == Flag.GREEN),
         "red_count": sum(1 for f in state.facts if f.flag == Flag.RED),
         "grey_count": sum(1 for f in state.facts if f.flag == Flag.GREY),
         "freshness_days_p50": _median(freshness),
+        "theses_count": len(state.theses),
     }
     log.info("Metrics: %s", metrics)
     return {"metrics": metrics}
