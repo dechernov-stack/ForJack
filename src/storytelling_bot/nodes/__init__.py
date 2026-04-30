@@ -1,3 +1,4 @@
+from storytelling_bot.expert.critic import node_expert_critic
 from storytelling_bot.nodes.background import node_fill_background
 from storytelling_bot.nodes.classifier import node_layer_classifier
 from storytelling_bot.nodes.decision_engine import node_decision_engine
@@ -11,6 +12,7 @@ from storytelling_bot.nodes.timeline import node_timeline_builder
 __all__ = [
     "embed_facts",
     "node_decision_engine",
+    "node_expert_critic",
     "node_fill_background",
     "node_flag_detector",
     "node_layer_classifier",
