@@ -1,0 +1,575 @@
+{
+  "query": "братья Либерман предприниматели",
+  "generated_at": "2026-04-30T10:20:32.674561",
+  "providers_used": [
+    "claude",
+    "deepseek",
+    "gpt"
+  ],
+  "cards": [
+    {
+      "canonical_name": "Daniil Liberman",
+      "canonical_lang": "en",
+      "role_hint": "tech founder, AR/AI, ex-Snapchat",
+      "name_variants": [
+        {
+          "lang": "en",
+          "spelling": "Daniil Liberman",
+          "note": "канон"
+        },
+        {
+          "lang": "en",
+          "spelling": "Daniel Liberman",
+          "note": "иногда — англоязычные источники"
+        },
+        {
+          "lang": "ru",
+          "spelling": "Даниил Либерман",
+          "note": ""
+        },
+        {
+          "lang": "he",
+          "spelling": "דניאל ליברמן",
+          "note": ""
+        }
+      ],
+      "anchors": [
+        {
+          "type": "birthplace",
+          "value": "Москва",
+          "sources": [
+            "claude",
+            "deepseek",
+            "gpt"
+          ],
+          "confidence": 0.95
+        },
+        {
+          "type": "company",
+          "value": "Sibilant Interactive (2005)",
+          "sources": [
+            "claude",
+            "deepseek"
+          ],
+          "confidence": 0.85
+        },
+        {
+          "type": "company",
+          "value": "Kanobu (2008)",
+          "sources": [
+            "claude",
+            "deepseek"
+          ],
+          "confidence": 0.85
+        },
+        {
+          "type": "company",
+          "value": "Libermans Co",
+          "sources": [
+            "deepseek",
+            "gpt"
+          ],
+          "confidence": 0.9
+        },
+        {
+          "type": "dob",
+          "value": "1982-12-21",
+          "sources": [
+            "claude",
+            "deepseek"
+          ],
+          "confidence": 0.9
+        },
+        {
+          "type": "company",
+          "value": "Kernel AR / Looksery",
+          "sources": [
+            "claude"
+          ],
+          "confidence": 0.8
+        },
+        {
+          "type": "company",
+          "value": "Libermans Co (post-2021)",
+          "sources": [
+            "claude"
+          ],
+          "confidence": 0.85
+        },
+        {
+          "type": "company",
+          "value": "Brothers Ventures (2010)",
+          "sources": [
+            "deepseek"
+          ],
+          "confidence": 0.8
+        },
+        {
+          "type": "company",
+          "value": "Kernel AR",
+          "sources": [
+            "deepseek"
+          ],
+          "confidence": 0.8
+        },
+        {
+          "type": "company",
+          "value": "Sibilant Interactive",
+          "sources": [
+            "gpt"
+          ],
+          "confidence": 0.7
+        },
+        {
+          "type": "company",
+          "value": "Kanobu",
+          "sources": [
+            "gpt"
+          ],
+          "confidence": 0.8
+        },
+        {
+          "type": "company",
+          "value": "Looksery / Kernel AR",
+          "sources": [
+            "gpt"
+          ],
+          "confidence": 0.7
+        },
+        {
+          "type": "deal",
+          "value": "Snapchat acquisition 2016, ~$60M",
+          "sources": [
+            "claude"
+          ],
+          "confidence": 0.85
+        },
+        {
+          "type": "deal",
+          "value": "Snapchat acquisition 2016 (~$60M)",
+          "sources": [
+            "deepseek"
+          ],
+          "confidence": 0.8
+        },
+        {
+          "type": "deal",
+          "value": "Snapchat acquisition 2015–2016",
+          "sources": [
+            "gpt"
+          ],
+          "confidence": 0.75
+        },
+        {
+          "type": "dob",
+          "value": "1982",
+          "sources": [
+            "gpt"
+          ],
+          "confidence": 0.7
+        },
+        {
+          "type": "education",
+          "value": "Школа №1311; Академия Маймонида (Москва)",
+          "sources": [
+            "claude"
+          ],
+          "confidence": 0.8
+        },
+        {
+          "type": "education",
+          "value": "школа №1311 (Москва), Академия им. Маймонида",
+          "sources": [
+            "deepseek"
+          ],
+          "confidence": 0.85
+        },
+        {
+          "type": "education",
+          "value": "Maimonides Academy, Moscow",
+          "sources": [
+            "gpt"
+          ],
+          "confidence": 0.8
+        },
+        {
+          "type": "parent",
+          "value": "отец — учёный-биофизик, лауреат Госпремии СССР",
+          "sources": [
+            "claude"
+          ],
+          "confidence": 0.7
+        },
+        {
+          "type": "parent",
+          "value": "родители — учёные-биофизики; отец — лауреат Государственной премии СССР",
+          "sources": [
+            "deepseek"
+          ],
+          "confidence": 0.8
+        },
+        {
+          "type": "role",
+          "value": "Snapchat Director of Product 2016–2021",
+          "sources": [
+            "claude"
+          ],
+          "confidence": 0.8
+        }
+      ],
+      "negatives": [
+        "не путать с Avigdor Liberman (израильский политик)",
+        "не путать с Joe Lieberman (US senator)",
+        "не путать с Greg/John Liberman / Liberty Media (медиа в США)",
+        "Не путать: Gil & Ido Liberman (AnyClip)",
+        "Не путать: израильский политик Avigdor"
+      ],
+      "related_entities": [
+        {
+          "rel": "sibling",
+          "entity_id": "David Liberman"
+        },
+        {
+          "rel": "business_partner",
+          "entity_id": "David Liberman"
+        },
+        {
+          "rel": "sibling",
+          "entity_id": "Давид Либерман"
+        }
+      ],
+      "consensus_score": 0.75,
+      "providers_agreed": [
+        "claude",
+        "deepseek",
+        "gpt"
+      ],
+      "providers_disagreed": [
+        {
+          "field": "canonical_name",
+          "values": "Daniil Liberman (2×) | Даниил Либерман (1×)"
+        },
+        {
+          "field": "dob",
+          "values": "1982-12-21 | 21 декабря 1982 | 1982"
+        }
+      ],
+      "raw_provider_answers": {
+        "claude": "name=Daniil Liberman; anchors=10",
+        "deepseek": "name=Даниил Либерман; anchors=10",
+        "gpt": "name=Daniil Liberman; anchors=8"
+      },
+      "generated_at": "2026-04-30T10:20:32.674254",
+      "version": 1
+    },
+    {
+      "canonical_name": "David Liberman",
+      "canonical_lang": "en",
+      "role_hint": "tech founder, AR/AI, ex-Snapchat",
+      "name_variants": [
+        {
+          "lang": "en",
+          "spelling": "David Liberman",
+          "note": "канон"
+        },
+        {
+          "lang": "ru",
+          "spelling": "Давид Либерман",
+          "note": ""
+        },
+        {
+          "lang": "he",
+          "spelling": "דוד ליברמן",
+          "note": ""
+        },
+        {
+          "lang": "en",
+          "spelling": "David Lieberman",
+          "note": "встречается реже"
+        }
+      ],
+      "anchors": [
+        {
+          "type": "birthplace",
+          "value": "Москва",
+          "sources": [
+            "claude",
+            "deepseek",
+            "gpt"
+          ],
+          "confidence": 0.95
+        },
+        {
+          "type": "dob",
+          "value": "1984-02-22",
+          "sources": [
+            "claude",
+            "deepseek"
+          ],
+          "confidence": 0.9
+        },
+        {
+          "type": "company",
+          "value": "Kernel AR / Looksery",
+          "sources": [
+            "claude"
+          ],
+          "confidence": 0.8
+        },
+        {
+          "type": "company",
+          "value": "Libermans Co (post-2021)",
+          "sources": [
+            "claude"
+          ],
+          "confidence": 0.85
+        },
+        {
+          "type": "company",
+          "value": "Sibilant Interactive (2005)",
+          "sources": [
+            "deepseek"
+          ],
+          "confidence": 0.8
+        },
+        {
+          "type": "company",
+          "value": "Kanobu (2008)",
+          "sources": [
+            "deepseek"
+          ],
+          "confidence": 0.85
+        },
+        {
+          "type": "company",
+          "value": "Brothers Ventures (2010)",
+          "sources": [
+            "deepseek"
+          ],
+          "confidence": 0.8
+        },
+        {
+          "type": "company",
+          "value": "Frank.Money / Kernel AR (2015–2016)",
+          "sources": [
+            "deepseek"
+          ],
+          "confidence": 0.75
+        },
+        {
+          "type": "company",
+          "value": "Libermans Co (после 2021)",
+          "sources": [
+            "deepseek"
+          ],
+          "confidence": 0.9
+        },
+        {
+          "type": "company",
+          "value": "Sibilant Interactive",
+          "sources": [
+            "gpt"
+          ],
+          "confidence": 0.7
+        },
+        {
+          "type": "company",
+          "value": "Kanobu",
+          "sources": [
+            "gpt"
+          ],
+          "confidence": 0.8
+        },
+        {
+          "type": "company",
+          "value": "Looksery / Kernel AR",
+          "sources": [
+            "gpt"
+          ],
+          "confidence": 0.7
+        },
+        {
+          "type": "company",
+          "value": "Libermans Co",
+          "sources": [
+            "gpt"
+          ],
+          "confidence": 0.85
+        },
+        {
+          "type": "deal",
+          "value": "Snapchat acquisition 2016, ~$60M",
+          "sources": [
+            "claude"
+          ],
+          "confidence": 0.85
+        },
+        {
+          "type": "deal",
+          "value": "Brothers Ventures: $1M в Coub",
+          "sources": [
+            "deepseek"
+          ],
+          "confidence": 0.7
+        },
+        {
+          "type": "deal",
+          "value": "Snapchat приобрёл Kernel AR в 2016 за ~$60M",
+          "sources": [
+            "deepseek"
+          ],
+          "confidence": 0.8
+        },
+        {
+          "type": "deal",
+          "value": "Libermans Co привлёк инвестиции при оценке $400M",
+          "sources": [
+            "deepseek"
+          ],
+          "confidence": 0.8
+        },
+        {
+          "type": "deal",
+          "value": "Snapchat acquisition 2015–2016, $60–150M (estimates vary)",
+          "sources": [
+            "gpt"
+          ],
+          "confidence": 0.75
+        },
+        {
+          "type": "deal",
+          "value": "Libermans Co valuation ~$400M",
+          "sources": [
+            "gpt"
+          ],
+          "confidence": 0.7
+        },
+        {
+          "type": "dob",
+          "value": "1984",
+          "sources": [
+            "gpt"
+          ],
+          "confidence": 0.7
+        },
+        {
+          "type": "education",
+          "value": "Школа №1311; Академия Маймонида (Москва)",
+          "sources": [
+            "claude"
+          ],
+          "confidence": 0.8
+        },
+        {
+          "type": "education",
+          "value": "школа №1311 (Москва), Академия им. Маймонида (Математика и информатика)",
+          "sources": [
+            "deepseek"
+          ],
+          "confidence": 0.85
+        },
+        {
+          "type": "education",
+          "value": "Maimonides Academy, Moscow",
+          "sources": [
+            "gpt"
+          ],
+          "confidence": 0.8
+        },
+        {
+          "type": "event",
+          "value": "Мульт личности — Первый канал, 2009–2013",
+          "sources": [
+            "deepseek"
+          ],
+          "confidence": 0.8
+        },
+        {
+          "type": "event",
+          "value": "Animated TV series Mult Lichnosti for Channel One (2009–2013)",
+          "sources": [
+            "gpt"
+          ],
+          "confidence": 0.7
+        },
+        {
+          "type": "parent",
+          "value": "отец — учёный-биофизик, лауреат Госпремии СССР",
+          "sources": [
+            "claude"
+          ],
+          "confidence": 0.7
+        },
+        {
+          "type": "parent",
+          "value": "родители — учёные-биофизики; отец — лауреат Государственной премии СССР",
+          "sources": [
+            "deepseek"
+          ],
+          "confidence": 0.8
+        },
+        {
+          "type": "parent",
+          "value": "father — biophysicist, USSR State Prize laureate",
+          "sources": [
+            "gpt"
+          ],
+          "confidence": 0.6
+        },
+        {
+          "type": "role",
+          "value": "Snapchat — директор по продукту до 2021",
+          "sources": [
+            "deepseek"
+          ],
+          "confidence": 0.8
+        }
+      ],
+      "negatives": [
+        "не путать с David Liberman (израильский физик)",
+        "не путать с David Liberman (саксофонист)",
+        "Не путать: Gil & Ido Liberman (Israel, AnyClip / Vimeo)",
+        "Не путать: Avigdor Lieberman (Israeli politician)",
+        "Не путать: Joe Lieberman (US Senator)",
+        "Не путать: David Liberman (jazz saxophonist)"
+      ],
+      "related_entities": [
+        {
+          "rel": "sibling",
+          "entity_id": "Daniil Liberman"
+        },
+        {
+          "rel": "business_partner",
+          "entity_id": "Daniil Liberman"
+        },
+        {
+          "rel": "sibling",
+          "entity_id": "Даниил Либерман"
+        }
+      ],
+      "consensus_score": 0.667,
+      "providers_agreed": [
+        "claude",
+        "deepseek",
+        "gpt"
+      ],
+      "providers_disagreed": [
+        {
+          "field": "canonical_name",
+          "values": "David Liberman (2×) | Давид Либерман (1×)"
+        },
+        {
+          "field": "dob",
+          "values": "1984-02-22 | 22 февраля 1984 | 1984"
+        }
+      ],
+      "raw_provider_answers": {
+        "claude": "name=David Liberman; anchors=7",
+        "deepseek": "name=Давид Либерман; anchors=14",
+        "gpt": "name=David Liberman; anchors=11"
+      },
+      "generated_at": "2026-04-30T10:20:32.674486",
+      "version": 1
+    }
+  ]
+}

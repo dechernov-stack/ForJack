@@ -3,9 +3,12 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from typing import Any
 
 from storytelling_bot.schema import EntityCard
+
+_NEG_PREFIX = re.compile(r"^(не путать\s*:?\s*с?\s*|don.t confuse\s*:?\s*)", re.IGNORECASE)
 
 log = logging.getLogger(__name__)
 
@@ -38,8 +41,8 @@ def verify_with_tavily(card: EntityCard, max_queries: int = 2) -> dict[str, Any]
                 for h in r.json().get("results", []):
                     title = h.get("title", "").lower()
                     url = h.get("url", "")
-                    # check if any negative is dominant in results
-                    if any(neg.lower() in title for neg in card.negatives):
+                    neg_terms = [_NEG_PREFIX.sub("", n).strip().lower() for n in card.negatives]
+                    if any(term and term in title for term in neg_terms):
                         namesake_hit = True
                     hits.append({"title": h.get("title", ""), "url": url})
             results.append({"query": q, "hits": hits})
