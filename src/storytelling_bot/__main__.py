@@ -46,10 +46,18 @@ def _render_summary(state) -> str:
     lines += ["", "--- STORY (по слоям) ---"]
     for layer_name, subs in state.story.items():
         lines.append(f"\n■ {layer_name}")
-        for sub, narrative in subs.items():
+        for sub, block in subs.items():
             lines.append(f"  ▸ {sub}")
-            for ln in narrative.splitlines():
-                lines.append(f"    {ln}")
+            if isinstance(block, dict):
+                if block.get("thesis"):
+                    lines.append(f"    ТЕЗИС: {textwrap.shorten(block['thesis'], 120)}")
+                for ev in block.get("evidence", [])[:2]:
+                    lines.append(f"    · [{ev.get('flag','?')}] {textwrap.shorten(ev.get('text',''), 100)}")
+            else:
+                for ln in str(block).splitlines():
+                    lines.append(f"    {ln}")
+    if state.cross_layer_overview:
+        lines += ["", "--- CROSS-LAYER OVERVIEW ---", state.cross_layer_overview]
     return "\n".join(lines)
 
 
