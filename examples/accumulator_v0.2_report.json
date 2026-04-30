@@ -1,0 +1,454 @@
+{
+  "entity_id": "accumulator",
+  "generated_at": "2026-04-30T09:48:52.899986",
+  "expert_profile": {
+    "analyst_name": "Senior DD Analyst",
+    "role": "Due-diligence lead, late-stage growth fund",
+    "hypothesis": "Команда Accumulator способна построить устойчивую alternative-liquidity-платформу для late-stage equity, опираясь на сеть Founders Forum и track record Дэйва Вайзера в Gett. Главные риски — концентрация на одном фаундере и непрозрачная техническая команда.",
+    "priority_layers": [
+      2,
+      6,
+      8
+    ],
+    "priority_subcategories": [
+      [
+        1,
+        "Fears & Vulnerability"
+      ],
+      [
+        2,
+        "Path to expertise"
+      ],
+      [
+        6,
+        "Architecture of the solution"
+      ],
+      [
+        4,
+        "Expertise & Diversity"
+      ]
+    ],
+    "taboo_topics": [
+      "личн",
+      "семейн",
+      "развод",
+      "интим"
+    ],
+    "voice": "взвешенный инвесторский тон; первое лицо множественного числа («мы видим», «нам важно»); ставит факты до выводов; называет противоречия словами «однако», «при этом»; не использует превосходные степени без числа",
+    "keep_threshold": 0.45,
+    "min_kept_per_subcat": 1
+  },
+  "metrics": {
+    "coverage_pct": 20.0,
+    "fact_count_total": 10,
+    "fact_count_kept": 6,
+    "kept_ratio": 0.6,
+    "green_count_kept": 3,
+    "red_count_kept": 0,
+    "grey_count_kept": 3,
+    "challenges_kept": 1,
+    "freshness_days_p50": 84.5
+  },
+  "decision": {
+    "recommendation": "watch",
+    "rationale": "hard=0, soft=0, green в ключевых слоях=2",
+    "hard_red_count": 0,
+    "soft_red_count": 0,
+    "green_in_key_layers": 2,
+    "evaluated_at": "2026-04-30T09:48:52.899898",
+    "human_approval_required": true,
+    "expert": "Senior DD Analyst"
+  },
+  "cross_layer_overview": "Голос эксперта: взвешенный инвесторский тон; первое лицо множественного числа («мы видим», «нам важно»); ставит факты до выводов; называет противоречия словами «однако», «при этом»; не использует превосходные степени без числа\n\nГипотеза: Команда Accumulator способна построить устойчивую alternative-liquidity-платформу для late-stage equity, опираясь на сеть Founders Forum и track record Дэйва Вайзера в Gett. Главные риски — концентрация на одном фаундере и непрозрачная техническая команда.\n\nСквозной нарратив (по приоритетам профиля):\n• [Founder Professional Story · Path to expertise] Дэйв Вайзер прошёл школу масштабирования в Gett — это объясняет его доступ к late-stage фаундерам и устойчивость к капитальному стрессу. При этом опыт single-product не равен опыту построения регулируемого фонда.\n• [Product & Business · Architecture of the solution] Архитектура — equity pooling под Rule 506(b) / Section 3(c)(1) — это консервативный, юридически чистый каркас. Мы видим, что продукт сделан под регуляторное давление, а не вопреки ему.\n• [Political, Economical, Social & Technological Context · Historical moment] Макроконтекст работает на компанию: структурный сдвиг к stay-private (>$110B вторичного рынка в H1 2025) и удлинение пути к IPO формируют объёмный TAM.",
+  "timeline": [
+    {
+      "date": "2010-09-01",
+      "entity": "oscar-hartmann",
+      "layer": "Founder Professional Story",
+      "text": "KupiVIP под руководством Оскара Хартманна вышла в лидеры рынка с продажами $250M за пять лет.",
+      "source": "https://web.archive.org/2010/kupivip"
+    },
+    {
+      "date": "2014-06-01",
+      "entity": "dave-waiser",
+      "layer": "Founder Professional Story",
+      "text": "Gett под руководством Дэйва Вайзера масштабировался до 1500 городов, обслуживая компании из Fortune 500. Привлечено более $1B инвестиций.",
+      "source": "https://web.archive.org/2014/gett-launch"
+    }
+  ],
+  "story": {
+    "Founder Personal Story": {
+      "Origin & Childhood": {
+        "thesis": "",
+        "evidence": [],
+        "caveats": [],
+        "appendix": [
+          {
+            "text": "Дэйв Вайзер: «Я вырос в семье, где деньги были всегда поводом для тревоги. Это сформировало мою одержимость строить системы, в которых ликвидность не зависит от удачи одного раунда».",
+            "source": "https://podcast.example/waiser-childhood-2026",
+            "reason": "вне приоритетов профиля — в приложение"
+          }
+        ]
+      }
+    },
+    "Founder Professional Story": {
+      "Co-founder dynamics": {
+        "thesis": "Профессиональный трек фаундера соответствует мандату, но мы фиксируем зону неопределённости вокруг team depth.",
+        "evidence": [
+          {
+            "text": "Оскар Хартманн: «Моя ошибка с Ozon стоила инвесторам 300 миллионов. Сейчас я строю Angels Fund II, чтобы один такой кейс не уничтожал капитал».",
+            "source": "https://podcast.example/oscar-hartmann-ep42",
+            "source_type": "online_interview",
+            "flag": "grey",
+            "challenges": true,
+            "expert_note": "⚠ ставит гипотезу под вопрос — обязательно в нарратив; первичный источник, голос фаундера"
+          }
+        ],
+        "caveats": [],
+        "appendix": []
+      },
+      "Path to expertise": {
+        "thesis": "Дэйв Вайзер прошёл школу масштабирования в Gett — это объясняет его доступ к late-stage фаундерам и устойчивость к капитальному стрессу. При этом опыт single-product не равен опыту построения регулируемого фонда.",
+        "evidence": [
+          {
+            "text": "Gett под руководством Дэйва Вайзера масштабировался до 1500 городов, обслуживая компании из Fortune 500. Привлечено более $1B инвестиций.",
+            "source": "https://web.archive.org/2014/gett-launch",
+            "source_type": "archival",
+            "flag": "green",
+            "challenges": false,
+            "expert_note": "опорный факт"
+          },
+          {
+            "text": "KupiVIP под руководством Оскара Хартманна вышла в лидеры рынка с продажами $250M за пять лет.",
+            "source": "https://web.archive.org/2010/kupivip",
+            "source_type": "archival",
+            "flag": "grey",
+            "challenges": false,
+            "expert_note": "опорный факт"
+          }
+        ],
+        "caveats": [
+          {
+            "text": "KupiVIP под руководством Оскара Хартманна вышла в лидеры рынка с продажами $250M за пять лет.",
+            "source": "https://web.archive.org/2010/kupivip",
+            "reason": "серый сигнал, требует подтверждения"
+          }
+        ],
+        "appendix": []
+      }
+    },
+    "Community Culture, Values & Stories": {
+      "Attraction & Selection": {
+        "thesis": "",
+        "evidence": [],
+        "caveats": [],
+        "appendix": [
+          {
+            "text": "Accumulator работает по invite-only принципу. Критерии входа: оценка >$100M, последний раунд в 2024 году или позже, runway >18 месяцев или прибыльность.",
+            "source": "https://techcrunch.example/accumulator-launch",
+            "reason": "вне приоритетов профиля — в приложение"
+          }
+        ]
+      }
+    },
+    "Community Professional Experience": {
+      "Expertise & Diversity": {
+        "thesis": "",
+        "evidence": [],
+        "caveats": [],
+        "appendix": [
+          {
+            "text": "Внутренняя встреча: фаундер открыто признаёт, что у Accumulator нет публично известного CTO; технологическая команда формируется через нетворк Founders Forum.",
+            "source": "internal://meetings/2026-04-12-accumulator-call",
+            "reason": "не дотянул до порога keep_threshold"
+          }
+        ]
+      }
+    },
+    "Product & Business": {
+      "Architecture of the solution": {
+        "thesis": "Архитектура — equity pooling под Rule 506(b) / Section 3(c)(1) — это консервативный, юридически чистый каркас. Мы видим, что продукт сделан под регуляторное давление, а не вопреки ему.",
+        "evidence": [
+          {
+            "text": "Accumulator Fund I зарегистрирован в SEC под Rule 506(b) и Section 3(c)(1). AUM по трём фондам — более $60M. Управляющим выступает Максим Темчук.",
+            "source": "https://www.sec.gov/edgar/accumulator-fund-i",
+            "source_type": "online_research",
+            "flag": "grey",
+            "challenges": false,
+            "expert_note": "опорный факт"
+          }
+        ],
+        "caveats": [
+          {
+            "text": "Accumulator Fund I зарегистрирован в SEC под Rule 506(b) и Section 3(c)(1). AUM по трём фондам — более $60M. Управляющим выступает Максим Темчук.",
+            "source": "https://www.sec.gov/edgar/accumulator-fund-i",
+            "reason": "серый сигнал, требует подтверждения"
+          }
+        ],
+        "appendix": []
+      },
+      "Evolution": {
+        "thesis": "Динамика капитала ($46M при $140M, AUM > $60M) подтверждает product-market fit на ранней траектории, но не отвечает на вопрос об устойчивости через цикл.",
+        "evidence": [
+          {
+            "text": "В декабре 2024 года Accumulator привлёк $46M при оценке $140M. Среди инвесторов — Авишай Абраами (Wix), Филип Дамес (Zalando), NFX, FJ Labs.",
+            "source": "https://crunchbase.com/organization/accumulator",
+            "source_type": "online_research",
+            "flag": "green",
+            "challenges": false,
+            "expert_note": "опорный факт"
+          }
+        ],
+        "caveats": [],
+        "appendix": []
+      }
+    },
+    "Political, Economical, Social & Technological Context": {
+      "Historical moment": {
+        "thesis": "Макроконтекст работает на компанию: структурный сдвиг к stay-private (>$110B вторичного рынка в H1 2025) и удлинение пути к IPO формируют объёмный TAM.",
+        "evidence": [
+          {
+            "text": "Дэйв Вайзер: «Я владел значительной долей Gett, готовился к IPO. Началась война — окно закрылось, мои 170 миллионов превратились в цифру в таблице. Я понял, что это нельзя пускать на самотёк».",
+            "source": "https://youtube.com/watch?v=demo-waiser-podcast",
+            "source_type": "online_interview",
+            "flag": "green",
+            "challenges": false,
+            "expert_note": "первичный источник, голос фаундера"
+          }
+        ],
+        "caveats": [],
+        "appendix": [
+          {
+            "text": "С 1996 года число публичных компаний в США сократилось почти вдвое — с >7000 до <4000. Средний возраст IPO вырос до 9–11 лет. Объём вторичного рынка достиг $110B в H1 2025.",
+            "source": "https://news.example/private-market-stay-private",
+            "reason": "не дотянул до порога keep_threshold"
+          }
+        ]
+      }
+    }
+  },
+  "fact_scores": [
+    {
+      "fact_idx": 0,
+      "relevance": 0.53,
+      "narrative_value": 0.65,
+      "novelty": 1.0,
+      "challenges_hypothesis": false,
+      "keep": true,
+      "expert_note": "первичный источник, голос фаундера"
+    },
+    {
+      "fact_idx": 1,
+      "relevance": 0.39,
+      "narrative_value": 0.85,
+      "novelty": 1.0,
+      "challenges_hypothesis": true,
+      "keep": true,
+      "expert_note": "⚠ ставит гипотезу под вопрос — обязательно в нарратив; первичный источник, голос фаундера"
+    },
+    {
+      "fact_idx": 2,
+      "relevance": 0.095,
+      "narrative_value": 0.75,
+      "novelty": 1.0,
+      "challenges_hypothesis": false,
+      "keep": false,
+      "expert_note": "вне приоритетов профиля — в приложение"
+    },
+    {
+      "fact_idx": 3,
+      "relevance": 0.645,
+      "narrative_value": 0.3,
+      "novelty": 1.0,
+      "challenges_hypothesis": false,
+      "keep": true,
+      "expert_note": "опорный факт"
+    },
+    {
+      "fact_idx": 4,
+      "relevance": 0.54,
+      "narrative_value": 0.3,
+      "novelty": 1.0,
+      "challenges_hypothesis": false,
+      "keep": true,
+      "expert_note": "опорный факт"
+    },
+    {
+      "fact_idx": 5,
+      "relevance": 0.12,
+      "narrative_value": 0.3,
+      "novelty": 1.0,
+      "challenges_hypothesis": false,
+      "keep": false,
+      "expert_note": "вне приоритетов профиля — в приложение"
+    },
+    {
+      "fact_idx": 6,
+      "relevance": 0.495,
+      "narrative_value": 0.3,
+      "novelty": 1.0,
+      "challenges_hypothesis": false,
+      "keep": false,
+      "expert_note": "не дотянул до порога keep_threshold"
+    },
+    {
+      "fact_idx": 7,
+      "relevance": 0.84,
+      "narrative_value": 0.45,
+      "novelty": 1.0,
+      "challenges_hypothesis": false,
+      "keep": true,
+      "expert_note": "опорный факт"
+    },
+    {
+      "fact_idx": 8,
+      "relevance": 0.57,
+      "narrative_value": 0.25,
+      "novelty": 1.0,
+      "challenges_hypothesis": false,
+      "keep": true,
+      "expert_note": "опорный факт"
+    },
+    {
+      "fact_idx": 9,
+      "relevance": 0.63,
+      "narrative_value": 0.35,
+      "novelty": 1.0,
+      "challenges_hypothesis": true,
+      "keep": false,
+      "expert_note": "не дотянул до порога keep_threshold"
+    }
+  ],
+  "facts": [
+    {
+      "entity_id": "dave-waiser",
+      "layer": 8,
+      "subcategory": "Historical moment",
+      "source_type": "online_interview",
+      "text": "Дэйв Вайзер: «Я владел значительной долей Gett, готовился к IPO. Началась война — окно закрылось, мои 170 миллионов превратились в цифру в таблице. Я понял, что это нельзя пускать на самотёк».",
+      "source_url": "https://youtube.com/watch?v=demo-waiser-podcast",
+      "captured_at": "2025-11-10T00:00:00",
+      "flag": "green",
+      "confidence": 0.8,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "oscar-hartmann",
+      "layer": 2,
+      "subcategory": "Co-founder dynamics",
+      "source_type": "online_interview",
+      "text": "Оскар Хартманн: «Моя ошибка с Ozon стоила инвесторам 300 миллионов. Сейчас я строю Angels Fund II, чтобы один такой кейс не уничтожал капитал».",
+      "source_url": "https://podcast.example/oscar-hartmann-ep42",
+      "captured_at": "2026-01-15T00:00:00",
+      "flag": "grey",
+      "confidence": 0.9,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "dave-waiser",
+      "layer": 1,
+      "subcategory": "Origin & Childhood",
+      "source_type": "online_interview",
+      "text": "Дэйв Вайзер: «Я вырос в семье, где деньги были всегда поводом для тревоги. Это сформировало мою одержимость строить системы, в которых ликвидность не зависит от удачи одного раунда».",
+      "source_url": "https://podcast.example/waiser-childhood-2026",
+      "captured_at": "2026-02-08T00:00:00",
+      "flag": "grey",
+      "confidence": 0.95,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "accumulator",
+      "layer": 6,
+      "subcategory": "Architecture of the solution",
+      "source_type": "online_research",
+      "text": "Accumulator Fund I зарегистрирован в SEC под Rule 506(b) и Section 3(c)(1). AUM по трём фондам — более $60M. Управляющим выступает Максим Темчук.",
+      "source_url": "https://www.sec.gov/edgar/accumulator-fund-i",
+      "captured_at": "2026-02-01T00:00:00",
+      "flag": "grey",
+      "confidence": 0.95,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "accumulator",
+      "layer": 6,
+      "subcategory": "Evolution",
+      "source_type": "online_research",
+      "text": "В декабре 2024 года Accumulator привлёк $46M при оценке $140M. Среди инвесторов — Авишай Абраами (Wix), Филип Дамес (Zalando), NFX, FJ Labs.",
+      "source_url": "https://crunchbase.com/organization/accumulator",
+      "captured_at": "2026-03-12T00:00:00",
+      "flag": "green",
+      "confidence": 0.9,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "accumulator",
+      "layer": 3,
+      "subcategory": "Attraction & Selection",
+      "source_type": "online_research",
+      "text": "Accumulator работает по invite-only принципу. Критерии входа: оценка >$100M, последний раунд в 2024 году или позже, runway >18 месяцев или прибыльность.",
+      "source_url": "https://techcrunch.example/accumulator-launch",
+      "captured_at": "2026-03-20T00:00:00",
+      "flag": "grey",
+      "confidence": 0.7,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "accumulator",
+      "layer": 8,
+      "subcategory": "Historical moment",
+      "source_type": "online_research",
+      "text": "С 1996 года число публичных компаний в США сократилось почти вдвое — с >7000 до <4000. Средний возраст IPO вырос до 9–11 лет. Объём вторичного рынка достиг $110B в H1 2025.",
+      "source_url": "https://news.example/private-market-stay-private",
+      "captured_at": "2026-02-25T00:00:00",
+      "flag": "green",
+      "confidence": 0.95,
+      "event_date": null,
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "dave-waiser",
+      "layer": 2,
+      "subcategory": "Path to expertise",
+      "source_type": "archival",
+      "text": "Gett под руководством Дэйва Вайзера масштабировался до 1500 городов, обслуживая компании из Fortune 500. Привлечено более $1B инвестиций.",
+      "source_url": "https://web.archive.org/2014/gett-launch",
+      "captured_at": "2025-12-01T00:00:00",
+      "flag": "green",
+      "confidence": 0.9,
+      "event_date": "2014-06-01",
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "oscar-hartmann",
+      "layer": 2,
+      "subcategory": "Path to expertise",
+      "source_type": "archival",
+      "text": "KupiVIP под руководством Оскара Хартманна вышла в лидеры рынка с продажами $250M за пять лет.",
+      "source_url": "https://web.archive.org/2010/kupivip",
+      "captured_at": "2025-12-02T00:00:00",
+      "flag": "grey",
+      "confidence": 0.7,
+      "event_date": "2010-09-01",
+      "red_flag_category": null
+    },
+    {
+      "entity_id": "accumulator",
+      "layer": 4,
+      "subcategory": "Expertise & Diversity",
+      "source_type": "offline_interview",
+      "text": "Внутренняя встреча: фаундер открыто признаёт, что у Accumulator нет публично известного CTO; технологическая команда формируется через нетворк Founders Forum.",
+      "source_url": "internal://meetings/2026-04-12-accumulator-call",
+      "captured_at": "2026-04-12T00:00:00",
+      "flag": "green",
+      "confidence": 0.8,
+      "event_date": null,
+      "red_flag_category": null
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "analyst_name": "Senior DD Analyst",
+  "role": "Due-diligence lead, late-stage growth fund",
+  "hypothesis": "Команда Accumulator способна построить устойчивую alternative-liquidity-платформу для late-stage equity, опираясь на сеть Founders Forum и track record Дэйва Вайзера в Gett. Главные риски — концентрация на одном фаундере и непрозрачная техническая команда.",
+  "priority_layers": [
+    2,
+    6,
+    8
+  ],
+  "priority_subcategories": [
+    [
+      1,
+      "Fears & Vulnerability"
+    ],
+    [
+      2,
+      "Path to expertise"
+    ],
+    [
+      6,
+      "Architecture of the solution"
+    ],
+    [
+      4,
+      "Expertise & Diversity"
+    ]
+  ],
+  "taboo_topics": [
+    "личн",
+    "семейн",
+    "развод",
+    "интим"
+  ],
+  "voice": "взвешенный инвесторский тон; первое лицо множественного числа («мы видим», «нам важно»); ставит факты до выводов; называет противоречия словами «однако», «при этом»; не использует превосходные степени без числа",
+  "keep_threshold": 0.45,
+  "min_kept_per_subcat": 1
+}
