@@ -78,9 +78,15 @@ def cmd_run(
     output: Path | None = typer.Option(None, "--output", "-o", help="JSON report path"),
     export_html: Path | None = typer.Option(None, "--export-html", help="HTML dashboard path"),
     quiet: bool = typer.Option(False, "--quiet", "-q"),
+    profile_path: Path | None = typer.Option(None, "--profile", help="ExpertProfile JSON path"),
+    hypothesis: str | None = typer.Option(None, "--hypothesis", help="Override profile hypothesis"),
+    voice: str | None = typer.Option(None, "--voice", help="Override profile voice"),
+    save_profile: Path | None = typer.Option(None, "--save-profile", help="Save resolved profile to path"),
 ) -> None:
     """Run full pipeline for an entity."""
     from storytelling_bot.collectors.base import DEMO_CORPUS
+    from storytelling_bot.expert.profile import default_profile_for, load_profile
+    from storytelling_bot.expert.profile import save_profile as _save_profile
     from storytelling_bot.graph import build_graph
     from storytelling_bot.schema import State
 
@@ -88,7 +94,21 @@ def cmd_run(
         # Allow unknown entities for real collectors (Task 4+)
         console.print(f"[yellow]Warning: '{entity}' not in demo corpus — collectors may return 0 chunks[/yellow]")
 
-    state = State(entity_id=entity, report_path=str(output) if output else None)
+    if profile_path:
+        expert_profile = load_profile(profile_path)
+    else:
+        expert_profile = default_profile_for(entity)
+
+    if hypothesis:
+        expert_profile = expert_profile.model_copy(update={"hypothesis": hypothesis})
+    if voice:
+        expert_profile = expert_profile.model_copy(update={"voice": voice})
+
+    if save_profile:
+        _save_profile(expert_profile, save_profile)
+        console.print(f"[green]Profile saved → {save_profile}[/green]")
+
+    state = State(entity_id=entity, report_path=str(output) if output else None, expert_profile=expert_profile)
     graph = build_graph()
     final = graph.run(state)
 
@@ -255,6 +275,35 @@ def cmd_export_html(
     payload = json.loads(report.read_text(encoding="utf-8"))
     export_html(payload, payload.get("entity_id", "unknown"), str(output))
     console.print(f"[green]Dashboard → {output}[/green]")
+
+
+@app.command("profile")
+def cmd_profile(
+    entity: str = typer.Option("accumulator", "--entity", "-e", help="Entity ID"),
+    goal: str | None = typer.Option(None, "--goal", "-g", help="Goal preset: business|personality|politics|impact"),
+    output: Path | None = typer.Option(None, "--output", "-o", help="Save profile JSON to path"),
+    show: bool = typer.Option(True, "--show/--no-show", help="Print profile to console"),
+) -> None:
+    """Show or generate an ExpertProfile for an entity."""
+    from storytelling_bot.expert.profile import default_profile_for, default_profile_for_goal, save_profile
+
+    if goal:
+        p = default_profile_for_goal(goal)
+    else:
+        p = default_profile_for(entity)
+
+    if output:
+        save_profile(p, output)
+        console.print(f"[green]Profile saved → {output}[/green]")
+
+    if show:
+        console.print(f"[bold]ExpertProfile[/bold] — {p.analyst_name} ({p.role})")
+        console.print(f"  Hypothesis: {p.hypothesis[:120]}")
+        console.print(f"  Voice: {p.voice[:80]}")
+        console.print(f"  Priority layers: {[lay.name for lay in p.priority_layers]}")
+        console.print(f"  keep_threshold: {p.keep_threshold}  min_kept_per_subcat: {p.min_kept_per_subcat}")
+        if p.taboo_topics:
+            console.print(f"  Taboo topics: {p.taboo_topics}")
 
 
 @app.command("serve")
