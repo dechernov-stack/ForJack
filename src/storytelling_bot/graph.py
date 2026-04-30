@@ -21,6 +21,7 @@ from storytelling_bot.nodes import (
     node_layer_classifier,
     node_metrics,
     node_reporter,
+    node_resolve_entity,
     node_story_synthesizer,
     node_timeline_builder,
 )
@@ -66,6 +67,7 @@ class GraphWrapper:
 def build_graph() -> GraphWrapper:
     g = StateGraph(State)
 
+    g.add_node("resolve", node_resolve_entity)
     g.add_node("collect", _collect_all)
     g.add_node("background", node_fill_background)
     g.add_node("classify", node_layer_classifier)
@@ -78,7 +80,8 @@ def build_graph() -> GraphWrapper:
     g.add_node("metrics", node_metrics)
     g.add_node("report", node_reporter)
 
-    g.set_entry_point("collect")
+    g.set_entry_point("resolve")
+    g.add_edge("resolve", "collect")
     g.add_edge("collect", "background")
     g.add_edge("background", "classify")
     g.add_edge("classify", "flag")

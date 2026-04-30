@@ -273,6 +273,42 @@ def cmd_search(
         console.print(f"     {url}\n")
 
 
+@app.command("resolve")
+def cmd_resolve(
+    query: str = typer.Argument(..., help="Entity query, e.g. 'братья Либерман предприниматели'"),
+    providers: str = typer.Option("claude,gpt,deepseek", "--providers", help="Comma-separated provider list"),
+    mock_dir: Path | None = typer.Option(None, "--mock-from", help="Directory with saved LLM answers"),
+    output: Path | None = typer.Option(None, "--output", "-o", help="Save EntityCard JSON"),
+    tavily: bool = typer.Option(False, "--verify-with-tavily"),
+) -> None:
+    """Resolve entity via multi-LLM consensus → EntityCard."""
+    from storytelling_bot.resolver.card import resolve
+
+    provider_list = [p.strip() for p in providers.split(",") if p.strip()]
+    cards = resolve(query=query, providers=provider_list, mock_dir=mock_dir, use_tavily=tavily)
+
+    if not cards:
+        console.print("[red]No EntityCards resolved.[/red]")
+        raise typer.Exit(1)
+
+    for card in cards:
+        consensus_color = "green" if card.consensus_score >= 0.6 else "yellow"
+        console.print(f"[bold]{card.canonical_name}[/bold] ({card.canonical_lang}) "
+                      f"[{consensus_color}]consensus={card.consensus_score:.2f}[/{consensus_color}]")
+        console.print(f"  role: {card.role_hint}")
+        console.print(f"  anchors: {len(card.anchors)} · agreed: {card.providers_agreed}")
+        if card.uncertain:
+            console.print("  [yellow]⚠ uncertain — review before proceeding[/yellow]")
+
+    if output:
+        import json as _json
+        output.write_text(
+            _json.dumps([c.to_jsonable() for c in cards], ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        console.print(f"[green]Saved → {output}[/green]")
+
+
 @app.command("export-html")
 def cmd_export_html(
     report: Path = typer.Argument(..., help="JSON report"),
