@@ -21,7 +21,8 @@ def node_layer_classifier(state: State) -> dict:
         if chunk.get("_layer_hint") is not None:
             try:
                 from storytelling_bot.schema import SUBCATEGORIES
-                layer = Layer(int(chunk["_layer_hint"]))
+                from storytelling_bot.schema import Layer as _Layer
+                layer = _Layer(int(chunk["_layer_hint"]))
                 sub = chunk.get("_subcategory_hint") or SUBCATEGORIES[layer][0]
                 conf = 0.9
             except (ValueError, KeyError):

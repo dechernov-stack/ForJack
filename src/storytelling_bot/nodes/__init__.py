@@ -10,8 +10,8 @@ from storytelling_bot.nodes.timeline import node_timeline_builder
 
 __all__ = [
     "embed_facts",
-    "node_fill_background",
     "node_decision_engine",
+    "node_fill_background",
     "node_flag_detector",
     "node_layer_classifier",
     "node_metrics",

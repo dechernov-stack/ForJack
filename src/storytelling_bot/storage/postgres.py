@@ -182,8 +182,9 @@ class PostgresStore:
     def upsert_person(self, entity_id: str, meta: dict[str, Any]) -> None:
         if not meta or not meta.get("display_name"):
             return
-        from sqlalchemy import text
         import datetime as dt
+
+        from sqlalchemy import text
         display_name = meta["display_name"]
         birth_date_str = meta.get("birth_date")
         birth_date = None
