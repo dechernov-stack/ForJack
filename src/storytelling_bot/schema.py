@@ -68,6 +68,7 @@ class Fact(BaseModel):
     confidence: float = 0.5
     event_date: dt.date | None = None
     red_flag_category: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
     def to_jsonable(self) -> dict[str, Any]:
         d = self.model_dump()
