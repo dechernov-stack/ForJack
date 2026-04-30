@@ -1,11 +1,8 @@
 """Tests for ExpertProfile module."""
 from __future__ import annotations
 
-import json
 import tempfile
 from pathlib import Path
-
-import pytest
 
 from storytelling_bot.expert.profile import (
     default_profile_for,
@@ -14,7 +11,6 @@ from storytelling_bot.expert.profile import (
     save_profile,
 )
 from storytelling_bot.schema import ExpertProfile, Layer
-
 
 FIXTURE = Path(__file__).parent / "fixtures" / "expert_profile_accumulator.json"
 
@@ -93,7 +89,7 @@ def test_goal_impact():
 def test_profile_to_dict_roundtrip():
     p = default_profile_for("accumulator")
     d = p.to_jsonable()
-    assert all(isinstance(l, int) for l in d["priority_layers"])
+    assert all(isinstance(lay, int) for lay in d["priority_layers"])
     p2 = ExpertProfile.from_dict(d)
     assert p2.priority_layers == p.priority_layers
     assert p2.voice == p.voice

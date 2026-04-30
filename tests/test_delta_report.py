@@ -91,7 +91,7 @@ def test_moved_facts_detected():
     curr = _report([_fact(text, url=url, layer=6)])
     delta = compare(prev, curr)
     assert len(delta["moved_facts"]) == 1
-    moved_fact, from_layer, to_layer = delta["moved_facts"][0]
+    _moved_fact, from_layer, to_layer = delta["moved_facts"][0]
     assert from_layer == "2"
     assert to_layer == "6"
 

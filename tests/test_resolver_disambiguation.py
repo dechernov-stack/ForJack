@@ -132,7 +132,7 @@ def test_tavily_skipped_without_api_key(monkeypatch):
 
 
 def test_tavily_namesake_dominated_downgrades_score(monkeypatch):
-    """If Tavily SERP is dominated by a negative, consensus_score drops × 0.7."""
+    """If Tavily SERP is dominated by a negative, consensus_score drops x 0.7."""
     monkeypatch.setenv("TAVILY_API_KEY", "fake-key")
 
     card = _make_card(
