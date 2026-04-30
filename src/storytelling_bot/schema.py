@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import datetime as dt
 from enum import Enum, StrEnum
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -80,6 +80,49 @@ class Fact(BaseModel):
         return d
 
 
+class ExpertProfile(BaseModel):
+    """Structured profile of the analyst-expert driving the storytelling."""
+    analyst_name: str
+    role: str
+    hypothesis: str
+    priority_layers: list[Layer] = Field(default_factory=list)
+    priority_subcategories: list[tuple[int, str]] = Field(default_factory=list)
+    taboo_topics: list[str] = Field(default_factory=list)
+    voice: str = ""
+    keep_threshold: float = 0.45
+    min_kept_per_subcat: int = 1
+    version: int = 1
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "ExpertProfile":
+        kw = dict(data)
+        if "priority_layers" in kw:
+            kw["priority_layers"] = [Layer(int(x)) for x in kw["priority_layers"]]
+        if "priority_subcategories" in kw:
+            kw["priority_subcategories"] = [tuple(x) for x in kw["priority_subcategories"]]
+        return cls(**kw)
+
+    def to_jsonable(self) -> dict[str, Any]:
+        d = self.model_dump()
+        d["priority_layers"] = [int(l) for l in self.priority_layers]
+        return d
+
+
+class FactScore(BaseModel):
+    """Expert critic's assessment of a single fact."""
+    fact_idx: int
+    relevance: float
+    narrative_value: float
+    novelty: float
+    challenges_hypothesis: bool
+    keep: bool
+    expert_note: str = ""
+    decision_source: Literal["critic", "human", "rule"] = "critic"
+
+    def to_jsonable(self) -> dict[str, Any]:
+        return self.model_dump()
+
+
 class PersonRole(BaseModel):
     """A role held by a person at a company / entity."""
     entity_id: str
@@ -128,12 +171,16 @@ class State(BaseModel):
     raw_chunks: list[dict[str, Any]] = Field(default_factory=list)
     facts: list[Fact] = Field(default_factory=list)
     timeline: list[dict[str, Any]] = Field(default_factory=list)
-    story: dict[str, dict[str, str]] = Field(default_factory=dict)
+    story: dict[str, Any] = Field(default_factory=dict)
     decision: dict[str, Any] = Field(default_factory=dict)
     report_path: str | None = None
     metrics: dict[str, Any] = Field(default_factory=dict)
     errors: list[str] = Field(default_factory=list)
     langfuse_trace_id: str | None = None
     person_meta: dict[str, Any] = Field(default_factory=dict)
+    expert_profile: ExpertProfile | None = None
+    fact_scores: list[FactScore] = Field(default_factory=list)
+    theses: dict[str, str] = Field(default_factory=dict)
+    cross_layer_overview: str = ""
 
     model_config = {"arbitrary_types_allowed": True}

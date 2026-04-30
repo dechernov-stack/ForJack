@@ -15,6 +15,7 @@ def _mock_store(facts=None, decision=None):
     m = MagicMock()
     m.load_facts.return_value = facts or []
     m.load_latest_decision.return_value = decision
+    m.load_person.return_value = None
     return m
 
 
