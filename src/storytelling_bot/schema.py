@@ -134,5 +134,6 @@ class State(BaseModel):
     metrics: dict[str, Any] = Field(default_factory=dict)
     errors: list[str] = Field(default_factory=list)
     langfuse_trace_id: str | None = None
+    person_meta: dict[str, Any] = Field(default_factory=dict)
 
     model_config = {"arbitrary_types_allowed": True}

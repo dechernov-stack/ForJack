@@ -179,6 +179,74 @@ class PostgresStore:
             return None
         return dict(row._mapping)
 
+    def upsert_person(self, entity_id: str, meta: dict[str, Any]) -> None:
+        if not meta or not meta.get("display_name"):
+            return
+        from sqlalchemy import text
+        import datetime as dt
+        display_name = meta["display_name"]
+        birth_date_str = meta.get("birth_date")
+        birth_date = None
+        if birth_date_str:
+            try:
+                birth_date = dt.date.fromisoformat(str(birth_date_str)[:10])
+            except ValueError:
+                pass
+        nationalities = json.dumps(meta.get("nationalities", []))
+        risk_level = meta.get("risk_level", "unknown")
+        engine = self._get_engine()
+        with engine.begin() as conn:
+            conn.execute(text("""
+                INSERT INTO persons (entity_id, display_name, birth_date, nationalities, risk_level)
+                VALUES (:entity_id, :display_name, :birth_date, :nationalities, :risk_level)
+                ON CONFLICT (entity_id) DO UPDATE SET
+                    display_name = EXCLUDED.display_name,
+                    birth_date = COALESCE(EXCLUDED.birth_date, persons.birth_date),
+                    nationalities = EXCLUDED.nationalities,
+                    risk_level = EXCLUDED.risk_level,
+                    updated_at = NOW()
+            """), {
+                "entity_id": entity_id, "display_name": display_name,
+                "birth_date": birth_date, "nationalities": nationalities,
+                "risk_level": risk_level,
+            })
+            person_id = conn.execute(
+                text("SELECT id FROM persons WHERE entity_id = :eid"), {"eid": entity_id}
+            ).fetchone()[0]
+            conn.execute(
+                text("DELETE FROM person_company_role WHERE person_id = :pid"), {"pid": person_id}
+            )
+            for r in meta.get("roles", []):
+                start_year = r.get("start_year")
+                start_date = dt.date(int(start_year), 1, 1) if start_year else None
+                conn.execute(text("""
+                    INSERT INTO person_company_role
+                        (person_id, entity_id, company_name, role, start_date, is_current)
+                    VALUES (:person_id, :entity_id, :company_name, :role, :start_date, :is_current)
+                """), {
+                    "person_id": person_id, "entity_id": entity_id,
+                    "company_name": r.get("company", ""), "role": r.get("title", ""),
+                    "start_date": start_date, "is_current": bool(r.get("is_current", True)),
+                })
+        log.info("PostgresStore: upserted person %s", entity_id)
+
+    def load_person(self, entity_id: str) -> dict[str, Any] | None:
+        from sqlalchemy import text
+        engine = self._get_engine()
+        with engine.connect() as conn:
+            row = conn.execute(
+                text("SELECT * FROM persons WHERE entity_id = :eid"), {"eid": entity_id}
+            ).fetchone()
+            if row is None:
+                return None
+            person = dict(row._mapping)
+            roles = conn.execute(
+                text("SELECT * FROM person_company_role WHERE person_id = :pid ORDER BY start_date"),
+                {"pid": person["id"]},
+            ).fetchall()
+            person["roles"] = [dict(r._mapping) for r in roles]
+        return person
+
     def count_facts(self, entity_id: str) -> int:
         from sqlalchemy import text
         engine = self._get_engine()

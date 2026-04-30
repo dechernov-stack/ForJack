@@ -124,7 +124,47 @@ def get_dossier(entity_id: str) -> dict[str, Any]:
         except Exception:
             continue
 
-    person = resolve_person(entity_id, facts)
+    db_person_row = store.load_person(entity_id)
+    if db_person_row:
+        import json as _json
+        nat_raw = db_person_row.get("nationalities", "[]")
+        if isinstance(nat_raw, str):
+            nat_raw = _json.loads(nat_raw)
+        bd = db_person_row.get("birth_date")
+        if isinstance(bd, str):
+            try:
+                import datetime as _dt
+                bd = _dt.date.fromisoformat(bd)
+            except ValueError:
+                bd = None
+        from .schema import PersonRole
+        db_roles = []
+        for r in db_person_row.get("roles", []):
+            sd = r.get("start_date")
+            if isinstance(sd, str):
+                try:
+                    import datetime as _dt
+                    sd = _dt.date.fromisoformat(str(sd)[:10])
+                except (ValueError, TypeError):
+                    sd = None
+            db_roles.append(PersonRole(
+                entity_id=entity_id,
+                company_name=r.get("company_name", ""),
+                role=r.get("role", ""),
+                start_date=sd,
+                is_current=r.get("is_current", True),
+            ))
+        from .schema import Person
+        person = Person(
+            entity_id=entity_id,
+            display_name=db_person_row.get("display_name") or entity_id.replace("-", " ").title(),
+            birth_date=bd,
+            nationalities=nat_raw,
+            risk_level=db_person_row.get("risk_level", "unknown"),
+            roles=db_roles,
+        )
+    else:
+        person = resolve_person(entity_id, facts)
     decision = store.load_latest_decision(entity_id)
     red_flags = [
         {

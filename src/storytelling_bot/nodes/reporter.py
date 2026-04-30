@@ -35,10 +35,13 @@ def _persist(state: State) -> None:
     try:
         from storytelling_bot import langfuse_ctx
         from storytelling_bot.storage.postgres import PostgresStore
+        store = PostgresStore()
         with langfuse_ctx.span(
             "storage.postgres.upsert_facts",
             input_data={"entity_id": state.entity_id, "fact_count": len(state.facts)},
         ):
-            PostgresStore().persist_run(state.facts, state.entity_id, state.decision)
+            store.persist_run(state.facts, state.entity_id, state.decision)
+        if state.person_meta:
+            store.upsert_person(state.entity_id, state.person_meta)
     except Exception:
         log.exception("PostgresStore persistence failed (pipeline continues)")

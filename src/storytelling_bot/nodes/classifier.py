@@ -18,7 +18,16 @@ def node_layer_classifier(state: State) -> dict:
     facts: list[Fact] = []
     skipped = 0
     for chunk in state.raw_chunks:
-        layer, sub, conf = llm.classify_fact(chunk["text"])
+        if chunk.get("_layer_hint") is not None:
+            try:
+                from storytelling_bot.schema import SUBCATEGORIES
+                layer = Layer(int(chunk["_layer_hint"]))
+                sub = chunk.get("_subcategory_hint") or SUBCATEGORIES[layer][0]
+                conf = 0.9
+            except (ValueError, KeyError):
+                layer, sub, conf = llm.classify_fact(chunk["text"])
+        else:
+            layer, sub, conf = llm.classify_fact(chunk["text"])
         event_date = None
         if chunk.get("event_date"):
             event_date = dt.date.fromisoformat(chunk["event_date"])

@@ -15,6 +15,7 @@ from storytelling_bot.collectors import (
 from storytelling_bot.nodes import (
     embed_facts,
     node_decision_engine,
+    node_fill_background,
     node_flag_detector,
     node_layer_classifier,
     node_metrics,
@@ -65,6 +66,7 @@ def build_graph() -> GraphWrapper:
     g = StateGraph(State)
 
     g.add_node("collect", _collect_all)
+    g.add_node("background", node_fill_background)
     g.add_node("classify", node_layer_classifier)
     g.add_node("flag", node_flag_detector)
     g.add_node("embed", embed_facts)
@@ -75,7 +77,8 @@ def build_graph() -> GraphWrapper:
     g.add_node("report", node_reporter)
 
     g.set_entry_point("collect")
-    g.add_edge("collect", "classify")
+    g.add_edge("collect", "background")
+    g.add_edge("background", "classify")
     g.add_edge("classify", "flag")
     g.add_edge("flag", "embed")
     g.add_edge("embed", "timeline")
