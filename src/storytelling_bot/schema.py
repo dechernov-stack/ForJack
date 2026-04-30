@@ -165,9 +165,54 @@ class Person(BaseModel):
         return ", ".join(self.name_variants) if self.name_variants else ""
 
 
+class NameVariant(BaseModel):
+    lang: str
+    spelling: str
+    note: str = ""
+
+
+class Anchor(BaseModel):
+    type: Literal["dob", "birthplace", "parent", "education", "company", "deal", "role", "event"]
+    value: str
+    sources: list[str] = Field(default_factory=list)
+    confidence: float = 0.0
+
+
+class EntityCard(BaseModel):
+    """Canonical identity card produced by EntityResolver before data collection."""
+    canonical_name: str
+    canonical_lang: str
+    role_hint: str = ""
+    name_variants: list[NameVariant] = Field(default_factory=list)
+    anchors: list[Anchor] = Field(default_factory=list)
+    negatives: list[str] = Field(default_factory=list)
+    related_entities: list[dict[str, str]] = Field(default_factory=list)
+    consensus_score: float = 0.0
+    providers_agreed: list[str] = Field(default_factory=list)
+    providers_disagreed: list[dict[str, str]] = Field(default_factory=list)
+    raw_provider_answers: dict[str, str] = Field(default_factory=dict)
+    uncertain: bool = False
+    version: int = 1
+
+    def all_spellings(self) -> list[str]:
+        return [self.canonical_name] + [v.spelling for v in self.name_variants]
+
+    def to_jsonable(self) -> dict[str, Any]:
+        return self.model_dump()
+
+
+class EntityRelation(BaseModel):
+    relation_type: Literal["siblings", "business_partners", "spouses", "parent_child", "mentor_mentee", "co_founders"]
+    entity_ids: list[str]
+    started_at: dt.date | None = None
+    ended_at: dt.date | None = None
+    note: str = ""
+
+
 class State(BaseModel):
     """Graph state passed between nodes."""
     entity_id: str
+    entity_query: str = ""
     raw_chunks: list[dict[str, Any]] = Field(default_factory=list)
     facts: list[Fact] = Field(default_factory=list)
     timeline: list[dict[str, Any]] = Field(default_factory=list)
@@ -182,5 +227,7 @@ class State(BaseModel):
     fact_scores: list[FactScore] = Field(default_factory=list)
     theses: dict[str, str] = Field(default_factory=dict)
     cross_layer_overview: str = ""
+    entity_cards: list[EntityCard] = Field(default_factory=list)
+    entity_relations: list[EntityRelation] = Field(default_factory=list)
 
     model_config = {"arbitrary_types_allowed": True}
