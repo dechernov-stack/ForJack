@@ -350,6 +350,234 @@ def cmd_profile(
             console.print(f"  Taboo topics: {p.taboo_topics}")
 
 
+def _case_store_path(case_id: str) -> Path:
+    return Path("data/cases") / f"{case_id}.json"
+
+
+def _load_case(case_id: str):
+    from storytelling_bot.workflow.case import Case
+    p = _case_store_path(case_id)
+    if not p.exists():
+        console.print(f"[red]Case not found: {case_id}[/red]")
+        raise typer.Exit(1)
+    import json as _json
+    return Case.model_validate(_json.loads(p.read_text(encoding="utf-8")))
+
+
+def _save_case(case) -> None:
+    import json as _json
+    p = _case_store_path(case.id)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(_json.dumps(case.model_dump(mode="json"), ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+@app.command("init")
+def cmd_init(
+    query: str = typer.Argument(..., help="Entity query, e.g. 'братья Либерман предприниматели'"),
+    goal: str = typer.Option("business", "--goal", "-g", help="Goal preset: business|personality|politics|impact"),
+    analyst_email: str = typer.Option("", "--analyst-email", help="Analyst email"),
+) -> None:
+    """Stage 1: Create a new storytelling Case (draft)."""
+    import uuid
+    from storytelling_bot.expert.profile import default_profile_for_goal
+    from storytelling_bot.workflow.case import Case
+    from storytelling_bot.workflow.stages import Stage
+
+    profile = default_profile_for_goal(goal)
+    case_id = str(uuid.uuid4())[:8]
+    case = Case(
+        id=case_id,
+        title=query,
+        goal=goal,
+        stage=Stage.DRAFT,
+        entity_query=query,
+        created_by=analyst_email or "analyst",
+    )
+    _save_case(case)
+
+    console.print(f"[green]Case created:[/green] {case_id}")
+    console.print(f"  Query: {query}")
+    console.print(f"  Goal: {goal}")
+    console.print(f"  ExpertProfile: {profile.analyst_name} — {profile.voice[:60]}")
+    console.print(f"\nNext: [bold]storyteller resolve {query!r} --output entity_card.json[/bold]")
+    console.print(f"Then: [bold]storyteller verify --case {case_id} --confirmed-by <email>[/bold]")
+
+
+@app.command("verify")
+def cmd_verify(
+    case_id: str = typer.Option(..., "--case", help="Case ID"),
+    confirmed_by: str = typer.Option(..., "--confirmed-by", help="Analyst email"),
+    entity_card_ids: list[str] = typer.Option([], "--entity-card-id", help="EntityCard IDs (repeatable)"),
+    expert_profile_id: str = typer.Option("default", "--profile-id", help="ExpertProfile ID"),
+) -> None:
+    """Stage 2: Analyst confirms EntityCards → transition draft → identified."""
+    case = _load_case(case_id)
+    if entity_card_ids:
+        case = case.model_copy(update={"entity_card_ids": entity_card_ids, "expert_profile_id": expert_profile_id})
+    elif not case.entity_card_ids:
+        case = case.model_copy(update={"entity_card_ids": ["auto"], "expert_profile_id": expert_profile_id})
+
+    case = case.confirm_identification(analyst_email=confirmed_by)
+    _save_case(case)
+    console.print(f"[green]Case {case_id}[/green] → stage: [bold]{case.stage}[/bold]")
+    console.print(f"  Confirmed by: {confirmed_by}")
+    console.print(f"\nNext: [bold]storyteller collect --case {case_id} --depth 2y[/bold]")
+
+
+@app.command("collect")
+def cmd_collect(
+    case_id: str = typer.Option(..., "--case", help="Case ID"),
+    depth: str = typer.Option("2y", "--depth", help="Collection depth: 1y|2y|3y|lifetime"),
+    export_html: Path | None = typer.Option(None, "--export-html"),
+    interactive: bool = typer.Option(False, "--interactive"),
+) -> None:
+    """Stage 3: Run full pipeline for case → first Diamond snapshot."""
+    from storytelling_bot.expert.profile import default_profile_for_goal
+    from storytelling_bot.graph import build_graph
+    from storytelling_bot.schema import State
+
+    case = _load_case(case_id)
+    if not case.expert_profile_id:
+        case = case.model_copy(update={"expert_profile_id": "default"})
+
+    profile = default_profile_for_goal(case.goal)
+    state = State(entity_id=case.entity_query or case.title, expert_profile=profile)
+    final = build_graph().run(state)
+
+    case = case.run_initial_collection(analyst_email=case.created_by, depth=depth)
+    _save_case(case)
+
+    payload = _build_payload(final)
+    if export_html:
+        from storytelling_bot.dashboard import export_html as do_export
+        export_html.parent.mkdir(parents=True, exist_ok=True)
+        do_export(payload, case.entity_query or case.title, str(export_html))
+        console.print(f"[green]Dashboard → {export_html}[/green]")
+
+    console.print(f"[green]Case {case_id}[/green] → stage: [bold]{case.stage}[/bold]")
+    console.print(f"  Facts: {len(final.facts)}  Decision: {final.decision.get('recommendation', '?')}")
+    console.print(f"\nNext: [bold]storyteller monitor start --case {case_id} --mode business-pulse[/bold]")
+
+
+monitor_app = typer.Typer(name="monitor", help="Monitoring commands (Stage 4)")
+app.add_typer(monitor_app)
+
+
+@monitor_app.command("start")
+def cmd_monitor_start(
+    case_id: str = typer.Option(..., "--case", help="Case ID"),
+    mode: str = typer.Option("business-pulse", "--mode", help="Focus mode"),
+    interval: str = typer.Option("6h", "--interval", help="Polling interval (e.g. 6h, 30m)"),
+) -> None:
+    """Transition case collected → monitoring."""
+    case = _load_case(case_id)
+    case = case.start_monitoring(actor=case.created_by, mode=mode)
+    _save_case(case)
+    console.print(f"[green]Case {case_id}[/green] → stage: [bold]{case.stage}[/bold]  mode={mode}")
+    console.print(f"  Poll interval: {interval}")
+
+
+@monitor_app.command("focus")
+def cmd_monitor_focus(
+    case_id: str = typer.Option(..., "--case", help="Case ID"),
+    layer: int = typer.Option(..., "--layer", help="Layer number 1-8"),
+    subcategory: str = typer.Option("", "--subcategory", help="Subcategory name"),
+) -> None:
+    """Set focus on a specific layer/subcategory for next monitoring tick."""
+    case = _load_case(case_id)
+    meta = dict(case.metadata)
+    meta["focus_layer"] = layer
+    meta["focus_subcategory"] = subcategory
+    case = case.model_copy(update={"metadata": meta})
+    _save_case(case)
+    console.print(f"[green]Focus set[/green]: layer={layer}, sub={subcategory!r}")
+
+
+@monitor_app.command("digest")
+def cmd_monitor_digest(
+    case_id: str = typer.Option(..., "--case", help="Case ID"),
+    since: str = typer.Option("", "--since", help="Date filter YYYY-MM-DD"),
+    prev_report: Path | None = typer.Option(None, "--prev-report", help="Previous JSON report"),
+    curr_report: Path | None = typer.Option(None, "--curr-report", help="Current JSON report"),
+) -> None:
+    """Generate delta digest between two Diamond snapshots."""
+    import json as _json
+    from storytelling_bot.reports.delta import compare, render_digest
+
+    if prev_report and curr_report:
+        prev = _json.loads(prev_report.read_text(encoding="utf-8"))
+        curr = _json.loads(curr_report.read_text(encoding="utf-8"))
+        delta = compare(prev, curr)
+        console.print(render_digest(delta))
+    else:
+        console.print(f"[yellow]Case {case_id}: digest (since={since}) — attach --prev-report and --curr-report[/yellow]")
+
+
+@monitor_app.command("pause")
+def cmd_monitor_pause(
+    case_id: str = typer.Option(..., "--case", help="Case ID"),
+    rationale: str = typer.Option("", "--rationale"),
+) -> None:
+    """Pause monitoring for a case."""
+    case = _load_case(case_id)
+    case = case.pause(actor=case.created_by, rationale=rationale)
+    _save_case(case)
+    console.print(f"[yellow]Case {case_id}[/yellow] paused.")
+
+
+@monitor_app.command("terminate")
+def cmd_monitor_terminate(
+    case_id: str = typer.Option(..., "--case", help="Case ID"),
+    rationale: str = typer.Option(..., "--rationale", help="Required rationale for termination"),
+) -> None:
+    """Terminate a case (requires senior analyst rationale)."""
+    case = _load_case(case_id)
+    case = case.terminate(actor=case.created_by, rationale=rationale)
+    _save_case(case)
+    console.print(f"[red]Case {case_id} TERMINATED.[/red]  Rationale: {rationale}")
+
+
+case_app = typer.Typer(name="case", help="Case management commands")
+app.add_typer(case_app)
+
+
+@case_app.command("show")
+def cmd_case_show(
+    case_id: str = typer.Option(..., "--case", help="Case ID"),
+) -> None:
+    """Show current case status and metadata."""
+    case = _load_case(case_id)
+    console.print(f"[bold]Case {case.id}[/bold] — {case.title}")
+    console.print(f"  Goal: {case.goal}  Stage: [bold]{case.stage}[/bold]")
+    console.print(f"  Entity query: {case.entity_query}")
+    console.print(f"  Depth: {case.depth}  Monitor mode: {case.monitor_mode}")
+    console.print(f"  Created by: {case.created_by}  Confirmed by: {case.confirmed_by}")
+    console.print(f"  Transitions: {len(case.transitions)}")
+    for t in case.transitions[-3:]:
+        console.print(f"    {t.from_stage} → {t.to_stage}  by {t.actor}")
+
+
+@case_app.command("list")
+def cmd_case_list(
+    stage: str = typer.Option("", "--stage", help="Filter by stage"),
+) -> None:
+    """List all cases, optionally filtered by stage."""
+    import json as _json
+    cases_dir = Path("data/cases")
+    if not cases_dir.exists():
+        console.print("[yellow]No cases found.[/yellow]")
+        return
+    from storytelling_bot.workflow.case import Case
+    for p in sorted(cases_dir.glob("*.json")):
+        try:
+            c = Case.model_validate(_json.loads(p.read_text(encoding="utf-8")))
+            if stage and c.stage != stage:
+                continue
+            console.print(f"  [cyan]{c.id}[/cyan]  [{c.stage}]  {c.title[:60]}  (goal={c.goal})")
+        except Exception:
+            continue
+
+
 @app.command("serve")
 def cmd_serve(
     host: str = typer.Option("0.0.0.0", "--host", help="Bind host"),

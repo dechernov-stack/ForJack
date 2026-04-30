@@ -167,6 +167,31 @@ def _fetch_gdelt_events(entity_id: str, days: int = 1) -> list[dict[str, Any]]:
 
 # ── Public watcher class ──────────────────────────────────────────────────────
 
+_HUMAN_GATE_CHALLENGES_THRESHOLD = int(os.environ.get("HUMAN_GATE_CHALLENGES_THRESHOLD", "5"))
+
+
+def _send_human_gate_alert(entity_id: str, reason: str, delta: dict[str, Any] | None = None) -> None:
+    """Send HUMAN GATE notification — decision-change or hard red-flag."""
+    webhook_url = os.environ.get("SLACK_WEBHOOK_URL", "")
+    lines = [f"⚠ *HUMAN GATE* — *{entity_id}*", f"Reason: {reason}"]
+    if delta:
+        if delta.get("decision_change"):
+            prev, curr = delta["decision_change"]
+            lines.append(f"Decision: {prev} → {curr}")
+        if delta.get("new_red_flags"):
+            lines.append(f"New red flags: {len(delta['new_red_flags'])}")
+    payload = {"text": "\n".join(lines)}
+    if not webhook_url or webhook_url == "mock":
+        log.warning("[HUMAN GATE MOCK] %s", payload["text"])
+        return
+    try:
+        resp = httpx.post(webhook_url, json=payload, timeout=10)
+        if resp.status_code != 200:
+            log.warning("Slack human-gate webhook returned %d", resp.status_code)
+    except Exception as e:
+        log.warning("Slack human-gate alert failed: %s", e)
+
+
 class EventWatcher:
     """Polls RSS + GDELT for an entity and sends Slack alerts for new events."""
 
@@ -175,10 +200,21 @@ class EventWatcher:
         entity_id: str,
         rss_feeds: list[str] | None = None,
         alert_on_red_flag: bool = True,
+        focus_mode: str | None = None,
+        challenges_threshold: int = _HUMAN_GATE_CHALLENGES_THRESHOLD,
     ) -> None:
         self.entity_id = entity_id
         self.rss_feeds = rss_feeds
         self.alert_on_red_flag = alert_on_red_flag
+        self.focus_mode = focus_mode
+        self.challenges_threshold = challenges_threshold
+
+    def apply_focus_to_profile(self, profile):
+        """Return profile patched with focus_mode for this tick (not persisted)."""
+        if not self.focus_mode:
+            return profile
+        from storytelling_bot.workflow.focus_prompts import apply_focus
+        return apply_focus(profile, self.focus_mode)
 
     def poll(self, gdelt_days: int = 1) -> list[dict[str, Any]]:
         """
@@ -217,3 +253,33 @@ class EventWatcher:
             if _check_keyword_rules(text):
                 flagged.append(ev)
         return flagged
+
+    def check_human_gate(
+        self,
+        delta: dict[str, Any],
+        challenges_per_case: int = 0,
+    ) -> list[str]:
+        """Return list of HUMAN_GATE trigger reasons (empty = no gate needed)."""
+        reasons = []
+        if delta.get("decision_change"):
+            prev, curr = delta["decision_change"]
+            reasons.append(f"decision-change: {prev} → {curr}")
+        if delta.get("new_red_flags"):
+            reasons.append(f"{len(delta['new_red_flags'])} new hard red-flag(s)")
+        if challenges_per_case > self.challenges_threshold:
+            reasons.append(
+                f"challenges_per_case={challenges_per_case} exceeds threshold={self.challenges_threshold}"
+            )
+        return reasons
+
+    def trigger_human_gate_if_needed(
+        self,
+        delta: dict[str, Any],
+        challenges_per_case: int = 0,
+    ) -> bool:
+        """Send HUMAN_GATE alert if conditions met. Returns True if gate triggered."""
+        reasons = self.check_human_gate(delta, challenges_per_case)
+        if reasons:
+            _send_human_gate_alert(self.entity_id, "; ".join(reasons), delta)
+            return True
+        return False
