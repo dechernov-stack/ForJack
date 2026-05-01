@@ -8,7 +8,10 @@ from storytelling_bot.llm.mock import MockClient
 
 
 def get_llm_client() -> LLMClient:
-    provider = os.environ.get("LLM_PROVIDER", "mock").lower()
+    provider = os.environ.get("LLM_PROVIDER", "").lower()
+    if not provider:
+        # Auto-detect: use anthropic if key is set
+        provider = "anthropic" if os.environ.get("ANTHROPIC_API_KEY") else "mock"
     if provider == "anthropic":
         from storytelling_bot.llm.claude import AnthropicClient
         return AnthropicClient()  # type: ignore[return-value]
