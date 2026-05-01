@@ -107,8 +107,13 @@ def trace(name: str, entity_id: str):
     try:
         t = lf.trace(name=name, input={"entity_id": entity_id})
         set_trace_id(t.id)
+    except AttributeError:
+        log.warning("Langfuse .trace() not available (v4 API incompatible) — tracing disabled")
+        global _INSTANCE
+        _INSTANCE = None
+        set_trace_id(None)
     except Exception:
-        log.exception("Langfuse trace() failed — continuing without tracing")
+        log.warning("Langfuse trace() failed — continuing without tracing")
         set_trace_id(None)
 
     try:
@@ -132,7 +137,7 @@ def span(name: str, input_data: dict | None = None):
         try:
             t = lf.trace(id=trace_id)
             s = t.span(name=name, input=input_data)
-        except Exception:
+        except (AttributeError, Exception):
             pass
     try:
         yield s
