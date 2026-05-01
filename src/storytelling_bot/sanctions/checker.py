@@ -23,6 +23,8 @@ _REQUEST_TIMEOUT = 10
 # Local yente instance (preferred when YENTE_URL is set or default docker-compose address)
 _YENTE_URL_DEFAULT = "http://localhost:8000"
 
+_OPENSANCTIONS_DISABLED = False  # set to True after first 401/5xx to skip further calls
+
 
 # ── OFAC/Sanctions keyword patterns (deterministic) ──────────────────────────
 
@@ -132,6 +134,10 @@ def _query_opensanctions_public(entity_name: str) -> tuple[str, float] | None:
     Fallback: query public api.opensanctions.org.
     API key optional (OPENSANCTIONS_API_KEY env var).
     """
+    global _OPENSANCTIONS_DISABLED
+    if _OPENSANCTIONS_DISABLED:
+        return None
+
     api_key = os.environ.get("OPENSANCTIONS_API_KEY", "")
     headers = {"Authorization": f"ApiKey {api_key}"} if api_key else {}
 
@@ -146,8 +152,13 @@ def _query_opensanctions_public(entity_name: str) -> tuple[str, float] | None:
         log.warning("OpenSanctions public API request failed for %r: %s", entity_name, e)
         return None
 
+    if resp.status_code in (401, 403):
+        log.warning("OpenSanctions returned %d — disabling for this run (set OPENSANCTIONS_API_KEY to enable)", resp.status_code)
+        _OPENSANCTIONS_DISABLED = True
+        return None
     if resp.status_code == 429:
         log.warning("OpenSanctions rate limit hit for %r", entity_name)
+        _OPENSANCTIONS_DISABLED = True
         return None
     if resp.status_code != 200:
         log.warning("OpenSanctions returned %d for %r", resp.status_code, entity_name)
