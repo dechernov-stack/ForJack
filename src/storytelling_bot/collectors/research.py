@@ -123,7 +123,8 @@ def _collect_tavily(entity_id: str) -> list[dict[str, Any]]:
     client = TavilyClient(api_key=api_key)
 
     aliases = _get_aliases(entity_id)
-    queries = [entity_id.replace("-", " "), *aliases[:2]]
+    base_name = entity_id.replace("-", " ")
+    queries = [f'"{base_name}" company OR startup OR business', *aliases[:2]]
 
     chunks = []
     seen_urls: set[str] = set()
@@ -141,7 +142,8 @@ def _collect_tavily(entity_id: str) -> list[dict[str, Any]]:
                 raw = {"source": "tavily", "query": q, "url": url, "content": content}
                 sha = _write_bronze(entity_id, "tavily", raw)
                 if sha is None:
-                    continue  # duplicate
+                    log.debug("Tavily: skipping duplicate %s", url)
+                    continue
 
                 record = _normalize(entity_id, "tavily", url, content, _now_iso())
                 _write_silver(entity_id, "tavily", sha, record)
