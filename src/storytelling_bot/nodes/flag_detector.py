@@ -15,11 +15,15 @@ def node_flag_detector(state: State) -> dict:
     llm = get_llm_client()
     facts: list[Fact] = []
 
+    # Entity-level sanctions check once (avoids N API calls for N facts)
+    entity_sanction = check_sanctions("", entity_name=state.entity_id)
+
     for fact in state.facts:
         f = fact.model_copy()
 
         # ── Step 1: deterministic sanctions/keyword hard rules (no LLM call) ──
-        hard = check_sanctions(f.text, entity_name=state.entity_id)
+        # Keyword check on fact text first; fall back to entity-level result
+        hard = check_sanctions(f.text) or entity_sanction
         if hard:
             cat, conf = hard
             f.flag = Flag.RED

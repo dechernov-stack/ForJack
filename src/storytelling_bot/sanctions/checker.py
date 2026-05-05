@@ -18,7 +18,7 @@ import httpx
 log = logging.getLogger(__name__)
 
 _OPENSANCTIONS_API = "https://api.opensanctions.org"
-_REQUEST_TIMEOUT = 10
+_REQUEST_TIMEOUT = 3
 
 # Local yente instance (preferred when YENTE_URL is set or default docker-compose address)
 _YENTE_URL_DEFAULT = "http://localhost:8000"
